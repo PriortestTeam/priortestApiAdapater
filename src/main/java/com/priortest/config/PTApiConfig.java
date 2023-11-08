@@ -6,6 +6,7 @@ public class PTApiConfig {
     static boolean isConnectPriorTestAPI;
     static String testCycleTitle;
     static String testCycleId;
+    static String testCaseRunId;
 
     public static String getTestCycleId() {
         return testCycleId;
@@ -32,5 +33,12 @@ public class PTApiConfig {
         testCycleTitle = title;
     }
 
+    public static void setRunCaseId(String caseId) {
+         testCaseRunId = caseId;
+    }
+    public String getRunCaseId() {
+        return testCaseRunId;
+
+    }
 
 }

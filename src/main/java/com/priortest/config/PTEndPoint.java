@@ -7,15 +7,12 @@ public class PTEndPoint {
 
     public static String addTCIntoTestCycle = "";
 
-    public static String retrieveTestCycleAsTitle = "";
-
-
-    public static String retrieveTestCycles = "/testCycle/list?pageNum=1&pageSize=10";
+    public static String retrieveTestCycleAsTitle = "testCycle/retrieveTestCycleAsTitle/getId";
 
     public static String addTCsIntoTestCycle = "/testCycle/instance/saveInstance";
 
     public static String retrieveAllTCsInTestCycle = "/testCycle/instance/listByTestCycle";
-    public static String retrieveTCsInTestCycle = "";
+    public static String retrieveTCInTestCycle = "testRun/retrieveTCInTestCycle/getCaseId";
 
     public static String updateTCStatus = "";
 

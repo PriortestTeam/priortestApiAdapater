@@ -8,41 +8,45 @@ import io.restassured.response.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
+
+
 public class PTApiUtil {
     private static final Logger log = LogManager.getLogger(PTApiUtil.class);
 
     public static void setUpTestCycle(String testCycleTitle) {
         // if testCycleTitle is there - do not create
         // if testCycleTitle is not there - created
-        //    - testCycleTitle passed by main branch
-        if (testCycleTitlePresent(testCycleTitle)) {
-            log.info("=========testCycle: " + testCycleTitle + " exist");
+        //  - testCycleTitle passed by main branch
+        boolean isTestCyclePresent = testCycleTitlePresent(testCycleTitle);
+        if (isTestCyclePresent) {
+            log.info("=========testCycle: " + testCycleTitle + " exist=----" + isTestCyclePresent);
 
         } else {
             log.info("=========start creating testCycle: " + testCycleTitle);
             createTestCycle(testCycleTitle);
         }
-
     }
 
     private static boolean testCycleTitlePresent(String testCycleTitle) {
         String PTProjectId = PTConstant.getPTProjectId();
         String payload = "{\"projectId\":" + PTProjectId + "}";
-        Response response = PTApiRequest.doPost(PTEndPoint.retrieveTestCycles, payload);
+        Response response = PTApiRequest.doGet(PTEndPoint.retrieveTestCycleAsTitle, testCycleTitle);
         if (response == null) {
-            log.info("=========testCycle: " + testCycleTitle + " does not exist");
+            log.info("=========testCycle: retrieve api exception");
             return false;
-
         } else {
             JsonPath jsonPathEvaluator = response.jsonPath();
-            String testCycleTitleInSystem = jsonPathEvaluator.get("data.list.title[0]");
-            log.info("=========testCycle: " + testCycleTitle + " exist");
-            if (testCycleTitleInSystem.contentEquals(testCycleTitle)) {
-                PTApiConfig.setTestCycleId(jsonPathEvaluator.get("data.list.id[0]"));
+            String testCycleId = jsonPathEvaluator.get("data.id");
+            if (testCycleId.isEmpty()) {
+                log.info("=========testCycle: " + testCycleTitle + " does not exist");
+                return false;
+            } else {
+                PTApiConfig.setTestCycleId(testCycleId);
+                log.info("=========testCycle: " + testCycleTitle + "set test cycle id" + testCycleId);
+                return true;
             }
-            return testCycleTitleInSystem.contentEquals(testCycleTitle);
         }
-
     }
 
     private static void createTestCycle(String testCycleTitle) {
@@ -59,47 +63,52 @@ public class PTApiUtil {
     }
 
 
-    public static void setUpTestRunInTestCycle(String testCycleId, String testCaseId, String status) {
+    public static void setUpTestRunInTestCycle(String testCaseId, String status) {
         // verify testCaseId present in Test Cycle
-        if (tcInTestCycle(testCycleId, testCaseId)) {
+        if (tcInTestCycle(testCaseId)) {
+            // update updateTCStatus()
             log.info("test case in test Cycle");
         } else {
-            addTcIntoTestCycle(testCycleId, testCaseId, status);
+            log.warn("test case not in test Cycle, start to add test case into test cycle");
+            addTcIntoTestCycle(testCaseId);
         }
-
-
-    }
-
-    private static void updateTCStatus(String status) {
-        log.info("========developing ...");
-    }
-
-    private static void addTcIntoTestCycle(String testCycleId, String testCaseId, String status) {
-        String PTProjectId = PTConstant.getPTProjectId();
-        String payload = "{\"projectId\":\"" + PTProjectId + "\",\"testCycleId\":\"" + testCycleId + "\",\"testCaseIds\":[\"" + testCaseId + "\"]}";
-        Response response = PTApiRequest.doPost(PTEndPoint.addTCsIntoTestCycle, payload);
+        log.info("Update Test Case Status- " + status);
         updateTCStatus(status);
 
     }
 
-    private static boolean tcInTestCycle(String testCycleId, String testCaseId) {
-        String PTProjectId = PTConstant.getPTProjectId();
+    private static void updateTCStatus(String status) {
+        log.info("========developing ... soon");
+    }
 
-        String payload = "{\"testCycleId\":" + testCycleId + "}";
-        Response response = PTApiRequest.doPost(PTEndPoint.retrieveAllTCsInTestCycle, payload);
+    private static void addTcIntoTestCycle(String testCaseId) {
+        String PTProjectId = PTConstant.getPTProjectId();
+        // condition: test case not in testCycle
+        //
+        String payload = "{\"projectId\":\"" + PTProjectId + "\",\"testCycleId\":\"" + PTApiConfig.getTestCycleId() + "\",\"testCaseIds\":[\"" + testCaseId + "\"]}";
+        Response response = PTApiRequest.doPost(PTEndPoint.addTCsIntoTestCycle, payload);
+        if (response == null) {
+            log.error("=============== Failed to test cases added in to test cycle");
+        } else {
+            tcInTestCycle(testCaseId);
+        }
+    }
+
+    private static boolean tcInTestCycle(String testCaseId) {
+        Response response = PTApiRequest.doGetTestRunId(PTEndPoint.retrieveTCInTestCycle, testCaseId);
         if (response == null) {
             log.info("=========testCaseIdSearched expected null: " + response == null);
             return false;
         } else {
-
             JsonPath jsonPathEvaluator = response.jsonPath();
-            String testCaseResult = jsonPathEvaluator.get("data.total");
-            if (testCaseResult.contentEquals("0")) {
+            String runTCIdSearched = jsonPathEvaluator.get("data.id");
+            log.info("========================"+ runTCIdSearched);
+            if (runTCIdSearched.isEmpty()) {
                 return false;
             } else {
-                String testCaseIdSearched = jsonPathEvaluator.get("data.list.id[0]");
-                log.info("=========testCaseIdSearched: " + testCaseIdSearched + " exist");
-                return testCaseId.contentEquals(testCaseIdSearched);
+                log.info("========= run case id for testCaseIdSearched " + runTCIdSearched + " exist");
+                PTApiConfig.setRunCaseId(runTCIdSearched);
+                return true;
             }
 
         }
@@ -107,4 +116,15 @@ public class PTApiUtil {
 
     }
 
+    public static void createIssue() {
+        log.info("developing.... soon");
+    }
+
+
+    public static void removeTCsFromTestCycle(ArrayList<String> tcLists) {
+        String testCycleId = PTApiConfig.getTestCycleId();
+        String payload = "{\"testCycleId\":" + testCycleId + "}";
+        Response response = PTApiRequest.doPost(PTEndPoint.retrieveAllTCsInTestCycle, payload);
+
+    }
 }

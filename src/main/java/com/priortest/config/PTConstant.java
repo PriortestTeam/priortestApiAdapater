@@ -17,8 +17,9 @@ public class PTConstant {
     }
 
     public static String getPTBaseURI() {
-        return PT_BASED_URI;
+        return PT_BASED_URI + PT_PROJECT_ID;
     }
+
 
     public static String getPTToken() {
         return PT_TOKEN;
