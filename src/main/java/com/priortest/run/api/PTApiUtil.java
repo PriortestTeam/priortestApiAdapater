@@ -7,6 +7,7 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -66,19 +67,67 @@ public class PTApiUtil {
     public static void setUpTestRunInTestCycle(String testCaseId, String status) {
         // verify testCaseId present in Test Cycle
         if (tcInTestCycle(testCaseId)) {
-            // update updateTCStatus()
-            log.info("test case in test Cycle");
+            // update run test case status
+            log.info("test case in test Cycle - status update - start");
+            updateTCStatus(testCaseId, status);
+            log.info("test case in test Cycle - status update done" + status);
         } else {
             log.warn("test case not in test Cycle, start to add test case into test cycle");
             addTcIntoTestCycle(testCaseId);
         }
         log.info("Update Test Case Status- " + status);
-        updateTCStatus(status);
+        updateTCStatus(testCaseId, status);
 
     }
 
-    private static void updateTCStatus(String status) {
-        log.info("========developing ... soon");
+
+    static JSONObject payloadCreate(String projectId , String runCaseId, String testCycleId, int stepStatus,boolean updateMethod) {
+        boolean addedOn = updateMethod;
+        long caseRunDuration = 12312312;
+        int caseTotalPeriod = 3434;
+        int runCount = 1;
+        String testCaseId = runCaseId;
+
+        // Create a JSONObject and add values to it
+        JSONObject payload = new JSONObject();
+        payload.put("addedOn", addedOn);
+        payload.put("caseRunDuration", caseRunDuration);
+        payload.put("caseTotalPeriod", caseTotalPeriod);
+        payload.put("projectId", projectId);
+        payload.put("runCount", runCount);
+        payload.put("runStatus", stepStatus);
+        payload.put("testCaseId", testCaseId);
+        payload.put("testCycleId", testCycleId);
+        log.info("hereid " + payload.toString());
+        return payload;
+    }
+
+    private static void updateTCStatus(String runCaseId, String status) {
+        int stepStatusCode = 5;
+        boolean addedOn =false;
+        if (status.contains("FAIL")) {
+
+            stepStatusCode = 2;
+            addedOn = false;
+        } else if (status.contains("PASS")) {
+            stepStatusCode = 1;
+            addedOn = true;
+        }
+        else if (status.contains("SKIP")){
+            stepStatusCode = 3;
+            addedOn = true;
+        }
+        log.info("========starting run case id update in test cycle " +runCaseId + ""+ stepStatusCode   + "  "+addedOn );
+        String PTProjectId = PTConstant.getPTProjectId();
+        String testCycleId = PTApiConfig.getTestCycleId();
+        JSONObject payload = payloadCreate(PTProjectId, runCaseId, testCycleId, stepStatusCode,addedOn);
+        Response response = PTApiRequest.doPostWithPayload(PTEndPoint.updateTestCaseStatusInTestCycle, payload.toString());
+        if (response == null) {
+            log.error("=============== Failed to test cases status update in to test cycle");
+        } else {
+           // tcInTestCycle(runCaseId);
+            log.info("======== end run case id update in test cycle successfully ");
+        }
     }
 
     private static void addTcIntoTestCycle(String testCaseId) {
@@ -102,7 +151,7 @@ public class PTApiUtil {
         } else {
             JsonPath jsonPathEvaluator = response.jsonPath();
             String runTCIdSearched = jsonPathEvaluator.get("data.id");
-            log.info("========================"+ runTCIdSearched);
+            log.info("========================" + runTCIdSearched);
             if (runTCIdSearched.isEmpty()) {
                 return false;
             } else {
@@ -117,7 +166,7 @@ public class PTApiUtil {
     }
 
     public static void createIssue() {
-        log.info("developing.... soon");
+        log.info("developing.... soon --- FOR createing issue");
     }
 
 
@@ -125,6 +174,28 @@ public class PTApiUtil {
         String testCycleId = PTApiConfig.getTestCycleId();
         String payload = "{\"testCycleId\":" + testCycleId + "}";
         Response response = PTApiRequest.doPost(PTEndPoint.retrieveAllTCsInTestCycle, payload);
+
+    }
+
+    public static String setUpTestCaseId(String testCaseId) {
+        String createdTestCaseId = null;
+        Response response = PTApiRequest.doGetTestCaseId(PTEndPoint.retrieveTestCaseInProject, testCaseId);
+        if ( response!=null){
+            log.info("==== test case id " + testCaseId + " in project");
+        }
+        else {
+            log.info("==== test case id " + testCaseId + " not in project");
+            createTestCase();
+        }
+
+        return createdTestCaseId;
+
+    }
+
+    private static void createTestCase() {
+        log.info("Create Test Case ---- developing ");
+        //JsonPath jsonPathEvaluator = response.jsonPath();
+        //loginToken = jsonPathEvaluator.get("data.token");
 
     }
 }

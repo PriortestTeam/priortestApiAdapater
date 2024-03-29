@@ -27,7 +27,7 @@ public class ConnectAPIListener extends TestListenerAdapter {
             String feature = annotation.feature();
             log.info("==========onTestSuccess========== " + feature + "_"+ testCaseId );
         }
-        PTApiUtil.setUpTestRunInTestCycle(testCaseId, "Pass");
+        PTApiUtil.setUpTestRunInTestCycle(testCaseId, "PASS");
 
     }
 
@@ -42,7 +42,7 @@ public class ConnectAPIListener extends TestListenerAdapter {
             log.info("==========onTestSkipped========== " + feature + "feature" + testCaseId + "testCaseId");
             tcLists.add(testCaseId);
         }
-        PTApiUtil.setUpTestRunInTestCycle(testCaseId, "Skip");
+        PTApiUtil.setUpTestRunInTestCycle(testCaseId, "SKIP");
     }
 
     @Override
@@ -79,10 +79,15 @@ public class ConnectAPIListener extends TestListenerAdapter {
         if (annotation != null) {
             testCaseId = annotation.testCaseId();
             String feature = annotation.feature();
+
             log.info("==========onTestFailure======== " + feature +"_"+ testCaseId);
             tcLists.add(testCaseId);
         }
-        PTApiUtil.setUpTestRunInTestCycle(testCaseId, "Fail");
+        else {
+            testCaseId = PTApiUtil.setUpTestCaseId();
+
+        }
+        PTApiUtil.setUpTestRunInTestCycle(testCaseId, "FAIL");
         PTApiUtil.createIssue();
     }
 

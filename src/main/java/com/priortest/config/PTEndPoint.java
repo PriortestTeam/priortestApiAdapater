@@ -11,8 +11,10 @@ public class PTEndPoint {
 
     public static String addTCsIntoTestCycle = "/testCycle/instance/saveInstance";
 
+    public static String updateTestCaseStatusInTestCycle = "testCycle/runCaseStatusUpdate";
     public static String retrieveAllTCsInTestCycle = "/testCycle/instance/listByTestCycle";
     public static String retrieveTCInTestCycle = "testRun/retrieveTCInTestCycle/getCaseId";
+    public static String retrieveTestCaseInProject = "retrieveTestcase";
 
     public static String updateTCStatus = "";
 

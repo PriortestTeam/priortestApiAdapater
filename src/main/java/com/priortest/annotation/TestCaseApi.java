@@ -11,5 +11,7 @@ public @interface TestCaseApi {
     String testCaseId();
 
     String feature() default "";
+
+    String testName() default "";
 }
 

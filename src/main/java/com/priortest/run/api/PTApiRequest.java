@@ -57,6 +57,7 @@ public class PTApiRequest {
     }
 
 
+    // for bear token
     public static Response doPost(String endPoint, String payload) {
         doLogin();
         httpRequest = RestAssured.given();
@@ -71,6 +72,44 @@ public class PTApiRequest {
         log.info("============post from API response " + response.asString());
         int responseCode = response.statusCode();
         doLogout();
+        if (responseCode == 200) {
+            return response;
+        }
+        return null;
+    }
+    // for header token
+    public static Response doPostWithPayload(String endPoint, String payload) {
+        RestAssured.baseURI = PTConstant.getPTBaseURI();
+        httpRequest = RestAssured.given();
+        httpRequest.contentType("application/Json");
+        String authorization = PTConstant.getPTToken();
+        String emailId = PTConstant.getPTEmail();
+        httpRequest.header("Authorization", authorization);
+        httpRequest.header("emailid", emailId);
+        httpRequest.log().all();
+        httpRequest.body(payload);
+        Response response = httpRequest.post(endPoint);
+        int responseCode = response.statusCode();
+        if (responseCode == 200) {
+            return response;
+        }
+        else {
+            log.info("========= Error in Case Status Updating : " + responseCode);
+        }
+        return null;
+    }
+
+
+    public static Response doGetTestCaseId(String endPoint,String parameter) {
+        RestAssured.baseURI = PTConstant.getPTBaseURI();
+        httpRequest = RestAssured.given();
+        httpRequest.param("testCaseId", parameter);
+        httpRequest.contentType("application/Json");
+        httpRequest.header("Authorization", "7d585s07pc6t3hcxsf32w827gjqsyizh9959750sqbck2p088g");
+        httpRequest.header("emailid", "qatest.hu.mary3@gmail.com");
+        httpRequest.log().all();
+        Response response = httpRequest.get(endPoint);
+        int responseCode = response.statusCode();
         if (responseCode == 200) {
             return response;
         }
