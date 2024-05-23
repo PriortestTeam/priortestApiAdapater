@@ -10,7 +10,7 @@ public class PTConstant {
     private static String PT_EMAIL;
     private static boolean PT_SIGN_OFF;
     private static String PT_VERSION;
-    private static boolean PT_ISSUE_CREATE;
+    private static boolean PT_ISSUE_DEAL_WITH;
 
     public static void setPTBasedURI(String URI) {
         PT_BASED_URI = URI;
@@ -70,11 +70,11 @@ public class PTConstant {
     }
 
     public static boolean getPTIssueCreation() {
-        return PT_ISSUE_CREATE;
+        return PT_ISSUE_DEAL_WITH;
     }
 
-    public static void setPTIssueCreation(boolean issueCreation) {
-        PT_ISSUE_CREATE = issueCreation;
+    public static void setPTIssueCreation(boolean issueDealWith) {
+        PT_ISSUE_DEAL_WITH = issueDealWith;
     }
 
     public static String getPTVersion() {

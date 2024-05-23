@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.PACKAGE, ElementType.TYPE})
-public @interface TestCycleApi {
-    String testCycle();
+@Target({ElementType.PACKAGE, ElementType.TYPE,ElementType.METHOD})
+public @interface TestVerifyApi {
+    String testVerify();
 }

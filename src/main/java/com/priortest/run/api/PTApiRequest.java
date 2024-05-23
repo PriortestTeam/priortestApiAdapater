@@ -11,13 +11,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.Assert;
 
-import static java.lang.Long.parseLong;
+
 
 public class PTApiRequest {
     private static final Logger log = LogManager.getLogger(PTApiRequest.class);
     static RequestSpecification httpRequest;
     static String loginToken;
     static String loginPayload = "{\n" + "  \"password\": \"Hjyhappy123!\",\n" + "  \"username\": \"qatest.hu.mary3@gmail.com\"\n" + "}";
+    private static String authorization = PTConstant.getPTToken();
+    private static String emailId = PTConstant.getPTEmail();
 
 
     public static void doLogin() {
@@ -77,18 +79,38 @@ public class PTApiRequest {
         }
         return null;
     }
+
+
+
     // for header token
     public static Response doPostWithPayload(String endPoint, String payload) {
         RestAssured.baseURI = PTConstant.getPTBaseURI();
         httpRequest = RestAssured.given();
         httpRequest.contentType("application/Json");
-        String authorization = PTConstant.getPTToken();
-        String emailId = PTConstant.getPTEmail();
         httpRequest.header("Authorization", authorization);
         httpRequest.header("emailid", emailId);
         httpRequest.log().all();
         httpRequest.body(payload);
         Response response = httpRequest.post(endPoint);
+        int responseCode = response.statusCode();
+        if (responseCode == 200) {
+            return response;
+        }
+        else {
+            log.error("========= Error in post with response : " + response.toString());
+        }
+        return null;
+    }
+
+    public static Response doPutWithPayload(String endPoint, String payload) {
+        RestAssured.baseURI = PTConstant.getPTBaseURI();
+        httpRequest = RestAssured.given();
+        httpRequest.contentType("application/Json");
+        httpRequest.header("Authorization", authorization);
+        httpRequest.header("emailid", emailId);
+        httpRequest.log().all();
+        httpRequest.body(payload);
+        Response response = httpRequest.put(endPoint);
         int responseCode = response.statusCode();
         if (responseCode == 200) {
             return response;
@@ -105,8 +127,8 @@ public class PTApiRequest {
         httpRequest = RestAssured.given();
         httpRequest.param("testCaseId", parameter);
         httpRequest.contentType("application/Json");
-        httpRequest.header("Authorization", "7d585s07pc6t3hcxsf32w827gjqsyizh9959750sqbck2p088g");
-        httpRequest.header("emailid", "qatest.hu.mary3@gmail.com");
+        httpRequest.header("Authorization", authorization);
+        httpRequest.header("emailid", emailId);
         httpRequest.log().all();
         Response response = httpRequest.get(endPoint);
         int responseCode = response.statusCode();
@@ -116,30 +138,57 @@ public class PTApiRequest {
         return null;
     }
 
+    public static Response doGetTestCaseIdByAutomationId(String endPoint,String parameter) {
+        RestAssured.baseURI = PTConstant.getPTBaseURI();
+        httpRequest = RestAssured.given();
+        httpRequest.param("externalId", parameter);
+        httpRequest.contentType("application/Json");
+        httpRequest.header("Authorization", authorization);
+        httpRequest.header("emailid", emailId);
+        httpRequest.log().all();
+        Response response = httpRequest.get(endPoint);
+        int responseCode = response.statusCode();
+        if (responseCode == 200) {
+            return response;
+        }
+        return null;
+    }
+
+
     public static Response doGet(String endPoint,String parameter) {
+        //retrieveTestCycleAsTitle
+
         RestAssured.baseURI = PTConstant.getPTBaseURI();
         httpRequest = RestAssured.given();
         httpRequest.param("title", parameter);
         httpRequest.contentType("application/Json");
-        httpRequest.header("Authorization", "7d585s07pc6t3hcxsf32w827gjqsyizh9959750sqbck2p088g");
-        httpRequest.header("emailid", "qatest.hu.mary3@gmail.com");
+        httpRequest.header("Authorization", authorization);
+        httpRequest.header("emailid", emailId);
         httpRequest.log().all();
         Response response = httpRequest.get(endPoint);
+
         int responseCode = response.statusCode();
-        if (responseCode == 200) {
+        JsonPath jsonPathEvaluator = response.jsonPath();
+        String tokenValidStatus = jsonPathEvaluator.get("msg");
+
+        if (responseCode == 200 && !tokenValidStatus.contains("token") ) {
+            log.info("======= return token response ");
             return response;
         }
         return null;
     }
 
+    // Token Header
     public static Response doGetTestRunId(String endPoint,String parameter) {
+        //retrieveTCInTestCycle
+
         RestAssured.baseURI=PTConstant.getPTBaseURI();
         httpRequest = RestAssured.given();
         httpRequest.param("testCaseId", parameter);
         httpRequest.param("testCycleId",  PTApiConfig.getTestCycleId());
         httpRequest.contentType("application/Json");
-        httpRequest.header("Authorization", "7d585s07pc6t3hcxsf32w827gjqsyizh9959750sqbck2p088g");
-        httpRequest.header("emailid", "qatest.hu.mary3@gmail.com");
+        httpRequest.header("Authorization", authorization);
+        httpRequest.header("emailid", emailId);
         httpRequest.log().all();
         Response response = httpRequest.get(endPoint);
         log.info("testingn-------------- "+ response.asString());
@@ -149,6 +198,27 @@ public class PTApiRequest {
         }
         return null;
     }
+
+    public static Response doGetIssueId(String endPoint,String parameter) {
+        // get issue id
+        RestAssured.baseURI=PTConstant.getPTBaseURI();
+        httpRequest = RestAssured.given();
+        httpRequest.param("issueId", parameter);
+
+        httpRequest.contentType("application/Json");
+        httpRequest.header("Authorization", authorization);
+        httpRequest.header("emailid", emailId);
+        httpRequest.log().all();
+        Response response = httpRequest.get(endPoint);
+        log.info("testingn-------------- "+ response.asString());
+        int responseCode = response.statusCode();
+        if (responseCode == 200) {
+            return response;
+        }
+        return null;
+    }
+
+
 
     public void doDelete(String endPoint, String payload) {
         //httpRequest = RestAssured.given();

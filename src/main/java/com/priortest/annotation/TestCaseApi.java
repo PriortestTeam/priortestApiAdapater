@@ -8,10 +8,20 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface TestCaseApi {
-    String testCaseId();
 
     String feature() default "";
 
     String testName() default "";
+
+    String automationId();
+
+    String[] issueId();
+
+    String priority();
+
+    String caseCategory();
+    String severity();
+
+
 }
 

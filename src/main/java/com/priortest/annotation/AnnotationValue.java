@@ -6,7 +6,7 @@ public class AnnotationValue {
         try {
             TestCaseApi annotation = clazz.getMethod("testLogin").getAnnotation(TestCaseApi.class);
             if (annotation != null) {
-                String testCaseId = annotation.testCaseId();
+                String testCaseId = annotation.automationId();
                 String feature = annotation.feature();
                 System.out.println("testCaseId: " + testCaseId);
                 System.out.println("feature: " + feature);

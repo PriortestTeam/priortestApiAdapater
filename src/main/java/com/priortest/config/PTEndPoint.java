@@ -3,20 +3,42 @@ package com.priortest.config;
 public class PTEndPoint {
 
     // Test Cycle
-    public static String createTestCycle = "/testCycle/saveTestCycle";
+    // need to create a new API - api-apiAdpater-controller
+    public static String createTestCycle = "testCycle/saveTestCycle";
 
-    public static String addTCIntoTestCycle = "";
 
+
+    // need to create a new API - api-apiAdpater-controller
+
+
+    // api-apiAdpater-controller
+
+    public static String addTCsIntoTestCycle = "testCycle/instance/saveInstance";
+    public static  String updateIssue ="Issue/udpateIssue";
+    public static String createIssue = "Issue/createIssue";
+    public static String closeIssue = "";
+
+    public static String getTestCaseInProject = "retrieveTestcase";
+
+    public static String updateIssueStatusByIssueId= "/issue/statusUpdate";
+    public static String getIssueStatusByIssueId= "retrieveIssueStatusAsPerIssueId";
+    public static String getIssueListByTestCase= "retrieveIssueAsPerTestCaseId"; //need to change api name
+
+
+    public static String getTestCaseInProjectByAutomationId = "retrieveTestcaseByExternalId";
+    public static String updateTestCaseStatusInTestCycle = "testCycle/runCaseStatusUpdate";
+
+    public static String retrieveAllTCsInTestCycle = "testCycle/instance/removeTCsFromTestCycle";
+
+
+    // move to adpater api - Start
+    public static String retrieveTCInTestCycle = "testRun/retrieveTCInTestCycle/getCaseId";
+   // response code need to config while token is invalid
     public static String retrieveTestCycleAsTitle = "testCycle/retrieveTestCycleAsTitle/getId";
 
-    public static String addTCsIntoTestCycle = "/testCycle/instance/saveInstance";
+    // move to adpater api - End
 
-    public static String updateTestCaseStatusInTestCycle = "testCycle/runCaseStatusUpdate";
-    public static String retrieveAllTCsInTestCycle = "/testCycle/instance/listByTestCycle";
-    public static String retrieveTCInTestCycle = "testRun/retrieveTCInTestCycle/getCaseId";
-    public static String retrieveTestCaseInProject = "retrieveTestcase";
-
-    public static String updateTCStatus = "";
+    public static String createTCinProj = "createTestCase";
 
     public static String removeTCFromTestCycle = "";
     public static String removeTCsFromTestCycle = "";
@@ -25,10 +47,8 @@ public class PTEndPoint {
     public static String signOff = "";
 
     // Issues
-    public static String createIssue = "";
-    public static String closeIssue = "";
 
-    public static String updateIssue = "";
+
 
 
 }
