@@ -7,6 +7,7 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.time.LocalDateTime;
@@ -29,7 +30,6 @@ public class PTApiUtil {
         boolean isTestCyclePresent = testCycleTitlePresent(testCycleTitle);
         if (isTestCyclePresent) {
             log.info("========= testCycle: " + testCycleTitle + " exist with status == ");
-
         } else {
             log.warn("========= Start creating testCycle: " + testCycleTitle);
             createTestCycle(testCycleTitle);
@@ -64,6 +64,7 @@ public class PTApiUtil {
             JsonPath jsonPathEvaluator = response.jsonPath();
             String testCycleId = jsonPathEvaluator.get("data.id");
             PTApiConfig.setTestCycleId(testCycleId);
+            PTConstant.PT_TEST_CYCLE_CREATION = false;  // set test cycle is fresh creation
             log.info("========== Passed: create testCycle " + testCycleId + " for title  " + testCycleTitle);
         }
     }
@@ -90,17 +91,16 @@ public class PTApiUtil {
         testCaseIds.add(caseId);
     }
 
-    public static List<String> getTestCaseIds() {
-        return new ArrayList<>(testCaseIds); // Returning a copy to avoid external modification
+    public static JSONArray getTestCaseIds() {
+        return new JSONArray (testCaseIds); // Returning a copy to avoid external modification
     }
 
     public static String removedTCsPayload() {
         JSONObject removedTCsPayload = new JSONObject();
         removedTCsPayload.put("projectId", PTConstant.getPTProjectId());
         removedTCsPayload.put("testCycleId", PTApiConfig.getTestCycleId());
-        removedTCsPayload.put("testCaseId", getTestCaseIds());
+        removedTCsPayload.put("testCaseIds", getTestCaseIds());
         return removedTCsPayload.toString();
-
     }
 
     private static String testCyclePayload(String testCycleTitle) {
@@ -276,8 +276,9 @@ public class PTApiUtil {
 
 
     public static void removeTCsFromTestCycle() {
-        log.info("=== start to remove extra test case from test cycle");
+        log.info("=== start to remove extra test case from test cycle " +removedTCsPayload().toString());
         Response response = PTApiRequest.doPostWithPayload(PTEndPoint.retrieveAllTCsInTestCycle, removedTCsPayload());
+
         log.info(response.asString());
     }
 

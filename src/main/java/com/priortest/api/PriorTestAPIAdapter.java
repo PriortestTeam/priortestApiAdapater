@@ -54,14 +54,13 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             PTApiUtil.updateAndCloseIssue(issueId, PTApiConfig.getRunCaseId());
 
             // add test cases id for remove extra tc after execution
-            PTApiUtil.addTestCaseId(testCaseId );
+            PTApiUtil.addTestCaseId(testCaseId);
 
         } catch (Exception e) {
             log.error("An error occurred in onTestSuccess: " + e.getMessage(), e);
 
         }
     }
-
 
 
     @Override
@@ -78,7 +77,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             PTApiUtil.setUpTestRunInTestCycle(testCaseId, "SKIP");
 
             // add test cases id for remove extra tc after execution
-            PTApiUtil.addTestCaseId(testCaseId );
+            PTApiUtil.addTestCaseId(testCaseId);
 
         } catch (Exception e) {
             log.error("An error occurred in onTestSuccess: " + e.getMessage(), e);
@@ -88,15 +87,13 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
 
     @Override
     public void onStart(ITestContext testContext) {
-        log.info("===============Test Suit onStart");
-        log.info("============== based uri：" + PTConstant.getPTBaseURI());
+        log.info("============== Test Suit onStart - based uri：" + PTConstant.getPTBaseURI());
         // setup basedURI - PASSED BY MAIN Branch
         RestAssured.baseURI = PTConstant.getPTBaseURI();
         PTApiConfig priorTestApiConfig = new PTApiConfig();
 
         // below code to setup testCycle
         if (priorTestApiConfig.getConnectPTAPI()) {
-
             String testCycleTitle = priorTestApiConfig.getTestCycleTitle();
             if (testCycleTitle == null || testCycleTitle.isEmpty()) {
                 log.debug("============== " + testCycleTitle + "testCycle Title is not defined, set default test cycle title");
@@ -110,8 +107,12 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
 
     @Override
     public void onFinish(ITestContext testContext) {
-        log.info("============== Finished- remove extra tc from testCycle");
-        PTApiUtil.removeTCsFromTestCycle();
+        if (PTConstant.PT_TEST_CYCLE_CREATION) {
+            log.info("============== Finished- remove extra tc from testCycle");
+            PTApiUtil.removeTCsFromTestCycle();
+        } else {
+            log.info("============== No need to perform removal of extra TCs ");
+        }
     }
 
     @Override
@@ -157,7 +158,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             PTApiUtil.createIssue(automationId);
 
             // add test cases id for remove extra tc after execution
-            PTApiUtil.addTestCaseId(testCaseId );
+            PTApiUtil.addTestCaseId(testCaseId);
 
         } catch (Exception e) {
             log.error("An error occurred in onTestSuccess: " + e.getMessage(), e);
