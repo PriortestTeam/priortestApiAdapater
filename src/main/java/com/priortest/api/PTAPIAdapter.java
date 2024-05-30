@@ -5,22 +5,99 @@ import com.priortest.annotation.TestStepApi;
 import com.priortest.config.PTApiConfig;
 import com.priortest.config.PTApiFieldSetup;
 import com.priortest.config.PTConstant;
+import com.priortest.config.PriorTestApiClient;
+import com.priortest.model.Config;
 import com.priortest.run.api.PTApiUtil;
 import io.restassured.RestAssured;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.testng.IExecutionListener;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
 import org.testng.TestListenerAdapter;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 
-public class PriorTestAPIAdapter extends TestListenerAdapter {
-    private static final Logger log = LogManager.getLogger(PriorTestAPIAdapter.class);
+public class PTAPIAdapter extends TestListenerAdapter implements IExecutionListener {
+    private static final Logger log = LogManager.getLogger(PTAPIAdapter.class);
+    private final Config config;
     ArrayList<String> tcLists = new ArrayList<String>();
     private long startTime;
+    private String projectId;
+    private String baseUrl;
+    private String userToken;
+    private String userEmail;
+    private String testEnv;
+    private String testPlatform;
 
+    private String testCycleId;
+    private int release;
+    private String version;
+    private int currentRelease;
+    private boolean enablePTApi;
+    private boolean signOff;
+    private PriorTestApiClient apiClient;
+
+    public PTAPIAdapter(Config config) {
+        this.config = config;
+
+        this.apiClient = new PriorTestApiClient(config.getBaseUrl(), config.getUserToken(), config.getUserEmail());
+    }
+
+
+    @Override
+    public void onStart(ITestContext testContext) {
+        Map<String, String> params = testContext.getCurrentXmlTest().getAllParameters();
+        if (params == null || !validateConfig(params)) {
+            throw new IllegalArgumentException("Required configuration missing");
+        }
+
+        this.projectId = params.get("projectId");
+        this.baseUrl = params.get("baseUrl");
+        this.userToken = params.get("userToken");
+        this.userEmail = params.get("userEmail");
+
+        this.testEnv = params.get("Env");
+        this.testPlatform = params.get("platform");
+        this.version = params.get("version");
+
+        // Parse boolean and integer parameters
+        this.enablePTApi = Boolean.parseBoolean(params.get("enablePTApi"));
+        this.signOff = Boolean.parseBoolean(params.get("signOff"));
+        this.release = Integer.parseInt(params.get("release"));
+        this.currentRelease = Integer.parseInt(params.get("currentRelease"));
+
+
+
+        if (!enablePTApi){
+            log.info("PT API is not enabled, Skip to perform test interation");
+            return;
+
+        }
+        if (projectId == null || baseUrl == null || userToken == null) {
+            throw new IllegalArgumentException("Missing required global configuration values.");
+        }
+
+
+        // Initialize test cycle
+        this.testCycleId = initializeTestCycle(params);
+
+    }
+
+    private boolean validateConfig(Map<String, String> config) {
+        return config.containsKey("projectId") && config.containsKey("userToken")
+                && config.containsKey("userEmail") && config.containsKey("testEnv")
+                && config.containsKey("testPlatform") && config.containsKey("testReleaseInfo");
+    }
+
+
+    @Override
+    public void onExecutionStart() {
+        // Initialization can be done here if needed
+
+    }
 
     @Override
     public void onTestStart(ITestResult tr) {
@@ -97,12 +174,11 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
         }
     }
 
-    @Override
-    public void onStart(ITestContext testContext) {
+
+    private String initializeTestCycle(Map<String, String> params) {
         log.info("============== Test Suit onStart - based uri：" + PTConstant.getPTBaseURI());
         // setup basedURI - PASSED BY MAIN Branch
         RestAssured.baseURI = PTConstant.getPTBaseURI();
-
         // below code to setup testCycle
         if (PTApiConfig.getConnectPTAPI()) {
             String testCycleTitle = PTApiConfig.getTestCycleTitle();
@@ -113,8 +189,12 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             log.info("============== Start setup testCycle：" + testCycleTitle);
             PTApiUtil.setUpTestCycle(testCycleTitle);
             log.info("============== End setup testCycle：" + testCycleTitle);
-        }
+        return null;
     }
+        return null;
+}
+
+
 
     @Override
     public void onFinish(ITestContext testContext) {
@@ -125,6 +205,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             log.info("============== No need to perform removal of extra TCs ");
         }
     }
+
 
     @Override
     public void onTestFailure(ITestResult tr) {

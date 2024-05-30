@@ -59,29 +59,6 @@ public class PTApiRequest {
     }
 
 
-    // for bear token
-    public static Response doPost(String endPoint, String payload) {
-        doLogin();
-        httpRequest = RestAssured.given();
-        if (payload != null) {
-            httpRequest.body(payload);
-        }
-        httpRequest.contentType("application/Json");
-        httpRequest.header("Authorization", "Bearer " + loginToken);
-        log.info("============loginToken" + loginToken);
-        httpRequest.log().all();
-        Response response = httpRequest.post(endPoint);
-        log.info("============post from API response " + response.asString());
-        int responseCode = response.statusCode();
-        doLogout();
-        if (responseCode == 200) {
-            return response;
-        }
-        return null;
-    }
-
-
-
     // for header token
     public static Response doPostWithPayload(String endPoint, String payload) {
         RestAssured.baseURI = PTConstant.getPTBaseURI();
@@ -93,6 +70,7 @@ public class PTApiRequest {
         httpRequest.body(payload);
         Response response = httpRequest.post(endPoint);
         int responseCode = response.statusCode();
+        log.info("----------------"+ response.asString());
         if (responseCode == 200) {
             return response;
         }
@@ -122,17 +100,18 @@ public class PTApiRequest {
     }
 
 
-    public static Response doGetTestCaseId(String endPoint,String parameter) {
+    public static Response doGetIssueIds(String endPoint,String parameter) {
         RestAssured.baseURI = PTConstant.getPTBaseURI();
         httpRequest = RestAssured.given();
-        httpRequest.param("testCaseId", parameter);
+        httpRequest.param("runCaseId", parameter);
         httpRequest.contentType("application/Json");
         httpRequest.header("Authorization", authorization);
         httpRequest.header("emailid", emailId);
         httpRequest.log().all();
         Response response = httpRequest.get(endPoint);
         int responseCode = response.statusCode();
-        if (responseCode == 200) {
+        log.info("==========="+ response.asString() + responseCode);
+        if (responseCode == 200 || responseCode == 404 || responseCode ==400) {
             return response;
         }
         return null;
@@ -181,7 +160,6 @@ public class PTApiRequest {
     // Token Header
     public static Response doGetTestRunId(String endPoint,String parameter) {
         //retrieveTCInTestCycle
-
         RestAssured.baseURI=PTConstant.getPTBaseURI();
         httpRequest = RestAssured.given();
         httpRequest.param("testCaseId", parameter);
@@ -199,7 +177,7 @@ public class PTApiRequest {
         return null;
     }
 
-    public static Response doGetIssueId(String endPoint,String parameter) {
+    public static Response doGetIssueStatus(String endPoint,String parameter) {
         // get issue id
         RestAssured.baseURI=PTConstant.getPTBaseURI();
         httpRequest = RestAssured.given();

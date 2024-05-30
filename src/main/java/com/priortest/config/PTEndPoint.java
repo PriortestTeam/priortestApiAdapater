@@ -22,8 +22,7 @@ public class PTEndPoint {
 
     public static String updateIssueStatusByIssueId= "/issue/statusUpdate";
     public static String getIssueStatusByIssueId= "retrieveIssueStatusAsPerIssueId";
-    public static String getIssueListByTestCase= "retrieveIssueAsPerTestCaseId"; //need to change api name
-
+    public static String getIssueListByRunCaseId = "retrieveIssueAsPerRunCaseId";
 
     public static String getTestCaseInProjectByAutomationId = "retrieveTestcaseByExternalId";
     public static String updateTestCaseStatusInTestCycle = "testCycle/runCaseStatusUpdate";

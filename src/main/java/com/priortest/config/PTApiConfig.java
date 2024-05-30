@@ -13,6 +13,9 @@ public class PTApiConfig {
     static String testPriority;
     static String testSeverity;
     static String testCategory;
+    private static String testStatus;
+    private static int releaseStatus;
+    private static int currentReleaseStatus;
 
     public static String getTestCycleId() {
         return testCycleId;
@@ -46,47 +49,21 @@ public class PTApiConfig {
         testCaseTitle = testName;
     }
 
-    public static void setCategory(String category) {
-        testCategory = category;
-    }
-
-    public static String getCategory() {
-        return testCategory;
-    }
-
-    public static void setSeverity(String severity) {
-        testSeverity = severity;
-    }
-
-    public static void setPriority(String priority) {
-        testPriority = priority;
-    }
-
-
-    public static String getPriority() {
-        return testPriority;
-    }
-
-    public static String getSeverity() {
-        return testSeverity;
-    }
-
-
-    public boolean getConnectPTAPI() {
+    public static boolean getConnectPTAPI() {
         return isConnectPriorTestAPI;
     }
 
-    public static void setConnectPTAPI(boolean connection) {
-        isConnectPriorTestAPI = connection;
-    }
-
-    public String getTestCycleTitle() {
+    public static String getTestCycleTitle() {
         return testCycleTitle;
-
     }
 
     public static void setTestCycleTitle(String title) {
         testCycleTitle = title;
+    }
+
+
+    public static void setConnectPTAPI(boolean connection) {
+        isConnectPriorTestAPI = connection;
     }
 
     public static void setRunCaseId(String caseId) {
@@ -94,7 +71,20 @@ public class PTApiConfig {
     }
     public static String getRunCaseId() {
         return testCaseRunId;
+    }
 
+    public static void setPriorTestRelease(int release) {
+        releaseStatus = release;
+    }
+    public static void setPriorTestCurrentRelease(int currentRelease) {
+        currentReleaseStatus = currentRelease;
+    }
+    public static int getPriorTestRelease(int release) {
+        return releaseStatus;
+    }
+
+    public static int getPriorTestCurrentRelease(int currentRelease) {
+        return currentReleaseStatus;
     }
 
 }

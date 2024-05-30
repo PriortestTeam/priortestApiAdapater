@@ -12,7 +12,7 @@ public class PTConstant {
     private static String PT_VERSION;
     private static boolean PT_ISSUE_DEAL_WITH;
 
-    public static boolean PT_TEST_CYCLE_CREATION;
+    public static boolean PT_TEST_CYCLE_CREATION =false;
     public static void setPTBasedURI(String URI) {
         PT_BASED_URI = URI;
     }
