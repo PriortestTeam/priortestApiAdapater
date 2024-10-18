@@ -5,7 +5,7 @@ public class Config {
     private String baseUrl;
     private String userToken;
     private String userEmail;
-    private String projectId;
+    private static String projectId;
 
     // Constructor
     public Config(String projectId, String baseUrl, String userToken, String userEmail) {
@@ -16,7 +16,7 @@ public class Config {
     }
 
     // Getters
-    public String getProjectId() {
+    public static String getProjectId() {
         return projectId;
     }
 

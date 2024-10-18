@@ -2,6 +2,7 @@ package com.priortest.config;
 
 public class PTApiPayloadConfig {
 
+    private static String casePayload;
     private String testCasePayload;
 
     public static String getTestCyclePayload(String testCyclePayload){
@@ -9,12 +10,12 @@ public class PTApiPayloadConfig {
     }
 
 
-    public void setTestCasePayload(String testCasePayload){
-        this.testCasePayload =testCasePayload;
+    public static void setTestCasePayload(String testCasePayload){
+        casePayload =testCasePayload;
     }
 
-    public String getTestCasePayload(){
-        return this.testCasePayload;
+    public static String getTestCasePayload(){
+        return casePayload;
     }
 
     public static  String getIssuePayload(String issuePayload){

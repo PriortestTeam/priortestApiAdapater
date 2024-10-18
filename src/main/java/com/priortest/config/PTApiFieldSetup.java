@@ -9,6 +9,9 @@ public class PTApiFieldSetup {
     private static String failureMessage;
     private static String verificationResult;
     private static Long runDuration;
+    private static String caseTitle;
+    private static String caseFeature;
+    private static String caseModule;
 
     public static void setSeverity(String severity) {
         testSeverity = severity;
@@ -20,6 +23,18 @@ public class PTApiFieldSetup {
 
     public static void setStatus(String status) {
         testStatus = status;
+    }
+
+    public static void setTitle(String title) {
+        caseTitle = title;
+    }
+
+    public static void setFeature(String feature) {
+        caseFeature = feature;
+    }
+
+    public static void setModule(String module) {
+        caseModule = module;
     }
 
 
@@ -42,14 +57,25 @@ public class PTApiFieldSetup {
         return testStatus;
     }
 
+    public static String getTitle() {
+        return caseTitle;
+    }
+
     public static String getPriority() {
         return testPriority;
+    }
+
+    public static String getFeature() {
+        return caseFeature;
+    }
+
+    public static String getModule() {
+        return caseModule;
     }
 
     public static String getSeverity() {
         return testSeverity;
     }
-
     public static void setCategory(String category) {
         testCategory = category;
     }

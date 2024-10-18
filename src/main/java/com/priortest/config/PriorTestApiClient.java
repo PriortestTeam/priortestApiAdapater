@@ -9,70 +9,78 @@ import java.util.Map;
 
 public class PriorTestApiClient {
 
-    private final String baseUrl;
-    private final String userToken;
-    private final String userEmail;
-
-
-    public PriorTestApiClient(String userToken, String userEmail, String baseUrl) {
-        this.userToken = userToken;
-        this.userEmail = userEmail;
-        this.baseUrl = baseUrl;
-
-        // Configure RestAssured
-        RestAssured.baseURI = baseUrl;
-    }
+    private static String baseUrl = PTConstant.getPTBaseURI();
+    private static String userToken = PTConstant.getPTToken();
+    private static String userEmail = PTConstant.getPTEmail();
 
     public Response getRequest(String endpoint) {
         return getRequest(endpoint, Collections.emptyMap());
     }
 
+    private static Response putRequest(String endpoint, String body) {
+        return RestAssured.given().header("Authorization", userToken).header("emailid", userEmail).header("Content-Type", "application/json").body(body).put(baseUrl + endpoint);
+    }
 
-    public Response getRequest(String endpoint, Map<String, String> queryParams) {
-        RequestSpecification request = RestAssured.given().header("Authorization", userToken).header("emailid", userEmail);
+    public static Response getRequest(String endpoint, Map<String, String> queryParams) {
+        RequestSpecification request = RestAssured.given().header("Authorization", userToken).header("emailid", userEmail).log().body().log().uri();
         for (Map.Entry<String, String> entry : queryParams.entrySet()) {
             request.param(entry.getKey(), entry.getValue());
         }
         return request.get(baseUrl + endpoint);
     }
 
-    private Response postRequest(String endpoint, String body) {
-        return RestAssured.given().header("Authorization", userToken).header("emailid", userEmail).header("Content-Type", "application/json").body(body).post(baseUrl + endpoint);
+    private static Response postRequest(String endpoint, String body) {
+        return RestAssured.given().header("Authorization", userToken).header("emailid", userEmail).header("Content-Type", "application/json").body(body).log().body().log().uri().post(baseUrl + endpoint);
     }
 
-    public Response checkTestCycle(String endpoint, Map<String, String> queryParams) {
+    public static Response checkTestCycle(String endpoint, Map<String, String> queryParams) {
         return getRequest(endpoint, queryParams);
     }
 
-    public Response createTestCycle(String endpoint, String body) {
+    public static Response createTestCycle(String endpoint, String body) {
         return postRequest(endpoint, body);
     }
 
-    public Response checkTestCase(String endpoint, Map<String, String> queryParams) {
+    public static Response checkTestCase(String endpoint, Map<String, String> queryParams) {
         return getRequest(endpoint, queryParams);
     }
 
-    public Response createTestCase(String endpoint, String body) {
+    public static Response createTestCase(String endpoint, String body) {
         return postRequest(endpoint, body);
     }
 
-    public Response putTestCaseIntoTestCycle(String endpoint, String body) {
+    public static Response addTestCaseIntoTestCycle(String endpoint, String body) {
         return postRequest(endpoint, body);
     }
 
-    public Response updateTestCaseStatus(String endpoint, String body) {
+    public static Response updateTestCaseStatusInTestCycle(String endpoint, String body) {
         return postRequest(endpoint, body);
     }
 
-    public Response createIssue(String endpoint, String body) {
+    public static Response createIssue(String endpoint, String body) {
         return postRequest(endpoint, body);
     }
 
-    public Response closeIssue(String endpoint, String body) {
-        return postRequest(endpoint, body);
+    public static Response closeIssue(String endpoint, String body) {
+        return putRequest(endpoint, body);
     }
 
-    public Response checkIssueList(String endpoint, Map<String, String> queryParams) {
+
+
+    public static Response checkIssueList(String endpoint, Map<String, String> queryParams) {
         return getRequest(endpoint, queryParams);
+    }
+
+    public static Response checkIssueStatus(String endpoint, Map<String, String> queryParams) {
+        return getRequest(endpoint, queryParams);
+    }
+
+
+    public static Response testCaseInTestCycle(String endpoint, Map<String, String> queryParams) {
+        return getRequest(endpoint, queryParams);
+    }
+
+    public static Response removeTCsFromTestCycle(String endpoint, String body) {
+        return postRequest(endpoint, body);
     }
 }

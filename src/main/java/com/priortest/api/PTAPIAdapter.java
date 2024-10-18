@@ -7,11 +7,10 @@ import com.priortest.config.PTApiFieldSetup;
 import com.priortest.config.PTConstant;
 import com.priortest.config.PriorTestApiClient;
 import com.priortest.model.Config;
+import com.priortest.model.ConfigManager;
 import com.priortest.run.api.PTApiUtil;
-import io.restassured.RestAssured;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.IExecutionListener;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
 import org.testng.TestListenerAdapter;
@@ -20,83 +19,48 @@ import java.util.ArrayList;
 import java.util.Map;
 
 
-public class PTAPIAdapter extends TestListenerAdapter implements IExecutionListener {
+public class PTAPIAdapter extends TestListenerAdapter {
     private static final Logger log = LogManager.getLogger(PTAPIAdapter.class);
-    private final Config config;
+    static ConfigManager configManager = ConfigManager.getInstance();
     ArrayList<String> tcLists = new ArrayList<String>();
+    private Config config;
+    private PTApiUtil apiService;
     private long startTime;
-    private String projectId;
-    private String baseUrl;
-    private String userToken;
-    private String userEmail;
-    private String testEnv;
-    private String testPlatform;
-
-    private String testCycleId;
-    private int release;
-    private String version;
-    private int currentRelease;
-    private boolean enablePTApi;
-    private boolean signOff;
     private PriorTestApiClient apiClient;
 
-    public PTAPIAdapter(Config config) {
-        this.config = config;
 
-        this.apiClient = new PriorTestApiClient(config.getBaseUrl(), config.getUserToken(), config.getUserEmail());
+
+    private void initializeApiService(Config config) {
+       // this.apiClient = new PriorTestApiClient(config.getBaseUrl(), config.getUserToken(), config.getUserEmail());
+        //this.apiService = new PTApiUtil(apiClient);
     }
-
 
     @Override
     public void onStart(ITestContext testContext) {
+        log.info("OnStart=======SetUP");
         Map<String, String> params = testContext.getCurrentXmlTest().getAllParameters();
+        validateConfig(params);
         if (params == null || !validateConfig(params)) {
-            throw new IllegalArgumentException("Required configuration missing");
+            throw new IllegalArgumentException("Required Configuration Missing： " + params + validateConfig(params));
         }
+        // Set parameters in the ConfigManager
+        ConfigManager configManager = ConfigManager.getInstance();
+        configManager.setParams(params);
 
-        this.projectId = params.get("projectId");
-        this.baseUrl = params.get("baseUrl");
-        this.userToken = params.get("userToken");
-        this.userEmail = params.get("userEmail");
-
-        this.testEnv = params.get("Env");
-        this.testPlatform = params.get("platform");
-        this.version = params.get("version");
-
-        // Parse boolean and integer parameters
-        this.enablePTApi = Boolean.parseBoolean(params.get("enablePTApi"));
-        this.signOff = Boolean.parseBoolean(params.get("signOff"));
-        this.release = Integer.parseInt(params.get("release"));
-        this.currentRelease = Integer.parseInt(params.get("currentRelease"));
-
-
-
-        if (!enablePTApi){
-            log.info("PT API is not enabled, Skip to perform test interation");
+        if (!configManager.getBooleanParam("enablePTApi")) {
+            log.info("PT API is Not Enabled, Skip To Perform Test Execution Updating");
             return;
-
         }
-        if (projectId == null || baseUrl == null || userToken == null) {
-            throw new IllegalArgumentException("Missing required global configuration values.");
+        this.config = new Config(params.get("ptProjectId"), params.get("ptBaseEndPoint"), params.get("ptUserToken"), params.get("ptUserEmail"));
+        if (config.getBaseUrl() == null || Config.getProjectId() == null || config.getUserEmail() == null || config.getUserToken() == null) {
+            throw new IllegalArgumentException("Missing Required Global Configuration Values.");
         }
-
-
-        // Initialize test cycle
-        this.testCycleId = initializeTestCycle(params);
-
+        initializeApiService(config);
+        initializeTestCycle();
     }
 
     private boolean validateConfig(Map<String, String> config) {
-        return config.containsKey("projectId") && config.containsKey("userToken")
-                && config.containsKey("userEmail") && config.containsKey("testEnv")
-                && config.containsKey("testPlatform") && config.containsKey("testReleaseInfo");
-    }
-
-
-    @Override
-    public void onExecutionStart() {
-        // Initialization can be done here if needed
-
+        return config.containsKey("ptProjectId") && config.containsKey("ptBaseEndPoint") && config.containsKey("ptUserToken") && config.containsKey("ptUserEmail") && config.containsKey("Env") && config.containsKey("platform") && config.containsKey("version") && config.containsKey("enablePTApi") && config.containsKey("issueDealWith") && config.containsKey("signOff") && config.containsKey("release") && config.containsKey("currentRelease");
     }
 
     @Override
@@ -111,7 +75,7 @@ public class PTAPIAdapter extends TestListenerAdapter implements IExecutionListe
             TestStepApi annotationStep = tr.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestStepApi.class);
             if (annotationStep != null) {
                 String stepDesc = annotationStep.stepDesc();
-                log.info("==========onTestSuccess for step desc========== " + stepDesc);
+                log.info("==========onTestSuccess For Step Desc========== " + stepDesc);
             }
             String testCaseId;
             String automationId = null;
@@ -151,7 +115,6 @@ public class PTAPIAdapter extends TestListenerAdapter implements IExecutionListe
         }
     }
 
-
     @Override
     public void onTestSkipped(ITestResult tr) {
         try {
@@ -174,35 +137,33 @@ public class PTAPIAdapter extends TestListenerAdapter implements IExecutionListe
         }
     }
 
-
-    private String initializeTestCycle(Map<String, String> params) {
-        log.info("============== Test Suit onStart - based uri：" + PTConstant.getPTBaseURI());
-        // setup basedURI - PASSED BY MAIN Branch
-        RestAssured.baseURI = PTConstant.getPTBaseURI();
-        // below code to setup testCycle
-        if (PTApiConfig.getConnectPTAPI()) {
-            String testCycleTitle = PTApiConfig.getTestCycleTitle();
-            if (testCycleTitle == null || testCycleTitle.isEmpty()) {
-                log.debug("============== " + testCycleTitle + "testCycle Title is not defined, set default test cycle title");
-                testCycleTitle = PTConstant.getPTEnv() + "_" + PTConstant.getPTPlatform() + "_" + PTConstant.getPTVersion();
-            }
-            log.info("============== Start setup testCycle：" + testCycleTitle);
-            PTApiUtil.setUpTestCycle(testCycleTitle);
-            log.info("============== End setup testCycle：" + testCycleTitle);
-        return null;
+    public String generateTestCycleTitle() {
+        return configManager.getParam("env") + "_" + configManager.getParam("platform") + "_" + configManager.getParam("platform");
     }
-        return null;
-}
 
+    private void initializeTestCycle() {
+        log.info("============== Test Suit onStart - Based URI：" + configManager.getParam("ptBaseEndPoint") + configManager.getBooleanParam("enablePTApi"));
 
+        // Code to Setup testCycle
+        if (configManager.getBooleanParam("enablePTApi")) {
+            String testCycleTitle = configManager.getParam("testCycle");
+            if (testCycleTitle == null || testCycleTitle.isEmpty()) {
+                log.debug("============== " + testCycleTitle + "testCycle Title Is Not Defined, Set Default Test Cycle Title");
+                testCycleTitle = generateTestCycleTitle();
+            }
+            log.debug("============== Start Setup testCycle：" + testCycleTitle);
+            PTApiUtil.setUpTestCycle(testCycleTitle);
+            log.debug("============== End Setup testCycle：" + testCycleTitle);
+        }
+    }
 
     @Override
     public void onFinish(ITestContext testContext) {
         if (!PTConstant.PT_TEST_CYCLE_CREATION) {
-            log.info("============== Finished- remove extra tc from testCycle" + PTConstant.PT_TEST_CYCLE_CREATION);
-           // PTApiUtil.removeTCsFromTestCycle();
+            log.info("============== Finished - Remove Extra TCs From testCycle: " + PTConstant.PT_TEST_CYCLE_CREATION);
+            PTApiUtil.removeTCsFromTestCycle();
         } else {
-            log.info("============== No need to perform removal of extra TCs ");
+            log.info("============== No Need To Perform Removal Of Extra TCs ");
         }
     }
 
@@ -251,7 +212,7 @@ public class PTAPIAdapter extends TestListenerAdapter implements IExecutionListe
             // Update or Close existing issues
             PTApiFieldSetup.setFailureMessage(tr.getThrowable().getMessage());
             PTApiConfig.setTestName(tr.getName());
-            PTApiUtil.createIssue(automationId);
+            PTApiUtil.createIssue();
 
             // add test cases id for remove extra tc after execution
             PTApiUtil.addTestCaseId(testCaseId);

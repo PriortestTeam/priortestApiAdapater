@@ -16,6 +16,8 @@ public class PTApiConfig {
     private static String testStatus;
     private static int releaseStatus;
     private static int currentReleaseStatus;
+    private static boolean newCreationOrNotStatus;
+    private static boolean isPayloadFromTestCase;
 
     public static String getTestCycleId() {
         return testCycleId;
@@ -28,6 +30,14 @@ public class PTApiConfig {
     public static void setTestCaseId(String tcId) {
         testCaseId = tcId;
     }
+    public static void setIsTestCaseNewCreation(boolean newCreationOrNot) {
+        newCreationOrNotStatus = newCreationOrNot;
+    }
+
+
+    public static boolean getIsTestCaseNewCreation() {
+        return newCreationOrNotStatus;
+    }
 
     public static String getTestCaseId() {
         return testCaseId;
@@ -35,6 +45,16 @@ public class PTApiConfig {
 
     public static void setFeature(String feature) {
        featureTitle =  feature;
+    }
+
+    public static void setIsTestCasePayloadFromTestCase(boolean isFromTestCaseOrNot) {
+        isPayloadFromTestCase =  isFromTestCaseOrNot;
+    }
+
+
+
+    public static boolean getIsTestCasePayloadFromTestCase() {
+        return isPayloadFromTestCase;
     }
 
     public static String getFeature() {
