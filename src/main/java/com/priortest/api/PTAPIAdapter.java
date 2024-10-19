@@ -108,9 +108,8 @@ public class PTAPIAdapter extends TestListenerAdapter {
             // add test cases id for remove extra tc after execution
             PTApiUtil.addTestCaseId(testCaseId);
 
-
         } catch (Exception e) {
-            log.error("An error occurred in onTestSuccess: " + e.getMessage(), e);
+            log.error("An Error Occurred In onTestSuccess: " + e.getMessage(), e);
 
         }
     }

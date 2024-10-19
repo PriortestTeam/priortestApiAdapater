@@ -76,7 +76,7 @@ public class PriorTestApiClient {
     }
 
 
-    public static Response testCaseInTestCycle(String endpoint, Map<String, String> queryParams) {
+    public static Response isTestCaseInTestCycle(String endpoint, Map<String, String> queryParams) {
         return getRequest(endpoint, queryParams);
     }
 
