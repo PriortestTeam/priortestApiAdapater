@@ -42,7 +42,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             String[] issueId = null;
             String feature;
             String testName;
-            String externalTcId =null;
+            String externalTcId = null;
 
             if (annotation != null) {
                 automationId = annotation.automationId();
@@ -58,12 +58,12 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
 
                 issueId = annotation.issueId();
                 testName = annotation.testName();
-                if (testName.isEmpty()){
-                    testName =tr.getMethod().getMethodName();
+                if (testName.isEmpty()) {
+                    testName = tr.getMethod().getMethodName();
                 }
                 PTApiFieldSetup.setTitle(testName);
                 externalTcId = feature + "_" + automationId;
-                log.info("==========onTestSuccess========== " + externalTcId + " TestCaseName: "+ testName );
+                log.info("==========onTestSuccess========== " + externalTcId + " TestCaseName: " + testName);
             }
             // setUpTestCaseId - retrieve testCase id as per given automationId
             // or create test case and return the created id
@@ -79,7 +79,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
 
             // Update or Close existing issues
             log.info("==========Start Close Issue ========== ");
-            PTApiUtil.updateAndCloseIssue(issueId, PTApiConfig.getRunCaseId());
+            PTApiUtil.updateAndCloseIssue(issueId, PTApiFieldSetup.getRunCaseId());
 
             // add test cases id for remove extra tc after execution
             log.info("==================== ");
@@ -91,22 +91,27 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
         }
     }
 
-
     @Override
     public void onTestSkipped(ITestResult tr) {
         try {
             TestCaseApi annotation = tr.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestCaseApi.class);
             String testCaseId = null;
+            String externalTcId = null;
             if (annotation != null) {
                 testCaseId = annotation.automationId();
                 String feature = annotation.feature();
-
-                log.info("==========onTestSkipped========== " + feature + "Feature" + testCaseId + "testCaseId");
+                externalTcId = feature + "_" + testCaseId;
+                log.info("==========onTestSkipped========== " + externalTcId);
             }
-            PTApiUtil.setUpTestRunInTestCycle(testCaseId, "SKIP");
 
-            // add test cases id for remove extra tc after execution
-            PTApiUtil.addTestCaseId(testCaseId);
+            // search test case in test Cycle
+            testCaseId = PTApiUtil.getTestCaseIdInProject(externalTcId);
+            if (testCaseId == null) {
+                log.info("No Action From PT API Adapter Since No testCase Found In Project");
+            } else {
+                log.info("Check The Case In testCycle And Update Run Status : SKIP ");
+                PTApiUtil.setUpTestRunInTestCycle(testCaseId);
+            }
 
         } catch (Exception e) {
             log.error("An Error In onTestSuccess: " + e.getMessage(), e);
@@ -132,11 +137,12 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             log.info("============== End Setup testCycle：" + testCycleTitle);
         }
     }
+
     @Override
     public void onFinish(ITestContext testContext) {
         if (!PTConstant.PT_TEST_CYCLE_CREATION) {
             log.info("============== Finished- Remove Extra TCs From testCycle" + PTConstant.PT_TEST_CYCLE_CREATION);
-           // PTApiUtil.removeTCsFromTestCycle();
+            // PTApiUtil.removeTCsFromTestCycle();
         } else {
             log.debug("============== No Need To Perform Removal Of Extra TCs ");
         }
@@ -144,10 +150,8 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
 
     @Override
     public void onTestFailure(ITestResult tr) {
-
         try {
             TestCaseApi annotation = tr.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestCaseApi.class);
-
             String testCaseId;
             String automationId = null;
             String[] issueId = null;
@@ -156,7 +160,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             String priority;
             String severity;
             String caseCategory;
-            String externalTcId =null;
+            String externalTcId = null;
 
             if (annotation != null) {
                 automationId = annotation.automationId();
@@ -173,7 +177,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                 PTApiFieldSetup.setSeverity(severity);
                 PTApiFieldSetup.setPriority(priority);
 
-                externalTcId = feature+"_"+automationId;
+                externalTcId = feature + "_" + automationId;
                 issueId = annotation.issueId();
                 log.info("==========on Failure Test ========== " + externalTcId);
             }
@@ -191,8 +195,9 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             // Update or Close existing issues
             PTApiFieldSetup.setFailureMessage(tr.getThrowable().getMessage());
             PTApiFieldSetup.setTitle(tr.getName());
-
+            PTApiUtil.isIssueOfRunCaseIdPresent();
             PTApiUtil.createIssue();
+
 
             // add test cases id for remove extra tc after execution
             PTApiUtil.addTestCaseId(testCaseId);

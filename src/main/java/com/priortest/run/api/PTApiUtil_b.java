@@ -173,7 +173,6 @@ public class PTApiUtil_b {
         return payload;
     }
 
-
     static String issueCreatePayload() {
         String browser = "";
         String caseCategory = "";

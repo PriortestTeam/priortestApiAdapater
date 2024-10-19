@@ -133,6 +133,18 @@ public class PTApiUtil {
         return testCyclePayload.toString();
     }
 
+
+    public static void setUpTestRunInTestCycle(String testCaseId){
+        if (isTCInTestCycle(testCaseId)){
+            boolean updateTCStatus = updateTCStatus("SKIP");
+            if (updateTCStatus){
+                log.info("======== Passed: runCase Status  " + "SKIP" + " Update In testCycle - End =========");
+            }
+            else {
+                log.error("======== Failed: runCase Status  " + "SKIP" + " Update In testCycle - End =========");
+            }
+        }
+    }
     public static void setUpTestRunInTestCycle(String testCaseId, String status) {
         if (PTApiConfig.getIsTestCaseNewCreation()) {
             // new test case created
@@ -150,9 +162,9 @@ public class PTApiUtil {
                 log.info("Test Case In testCycle - Status Update - Start");
                 boolean updateTCStatus = updateTCStatus(status);
                 if (updateTCStatus) {
-                    log.info("======== Passed: Run Case Status  " + status + " Update In testCycle - End =========");
+                    log.info("======== Passed: runCase Status  " + status + " Update In testCycle - End =========");
                 } else {
-                    log.error("======== Failed: Run Case Status Update In testCycle - End =========");
+                    log.error("======== Failed: runCase Status Update In testCycle - End =========");
                 }
             } else { // when testCaseId not present in testCycle
                 log.warn("======== Test Case Not In Test Cycle, Start To Add Test Case " + testCaseId + " Into testCycle  ======= " + PTApiConfig.getTestCycleId());
@@ -192,7 +204,7 @@ public class PTApiUtil {
             JSONObject issueCPayload = new JSONObject();
             issueCPayload.put("browser", "browser");
             issueCPayload.put("caseCategory", PTApiFieldSetup.getCategory());
-            issueCPayload.put("description", "THIS IS From Automation");
+            issueCPayload.put("description", PTApiFieldSetup.getFailureMessage());
             issueCPayload.put("projectId", PTProjectId);
             issueCPayload.put("env", PTConstant.getPTEnv());
             issueCPayload.put("fixVersion", "");
@@ -207,15 +219,18 @@ public class PTApiUtil {
             issueCPayload.put("verifiedResult", "");
             issueCPayload.put("title", PTApiFieldSetup.getTitle());
             issueCPayload.put("testDevice", PTConstant.getPTPlatform());
-            issueCPayload.put("runcaseId", PTApiConfig.getRunCaseId());
+            issueCPayload.put("runcaseId", PTApiFieldSetup.getRunCaseId());
             JSONObject customFieldDatas = new JSONObject();
             issueCPayload.put("customFieldDatas", customFieldDatas);
+            log.info("============== Issue Payload Created BY API Adpater :" + issueCPayload.toString());
             return issueCPayload.toString();
         }
         else {
-            String issuePayload = PTApiPayloadConfig.getIssuePayload();
-            log.info("============== Issue Payload Created By User :" + issuePayload);
-            return issuePayload;
+            JSONObject issuePayload = PTApiPayloadConfig.getIssuePayloadAsJson();
+            issuePayload.put("runcaseId",PTApiFieldSetup.getRunCaseId());
+
+            log.info("============== Issue Payload Created By User :" + issuePayload.toString());
+            return issuePayload.toString();
         }
 
     }
@@ -264,7 +279,7 @@ public class PTApiUtil {
                 return false;
             } else {
                 log.info("======== Retrieved runCase Id " + runTCIdSearched + " of testCase Id " + testCaseId +"In testCycle");
-                PTApiConfig.setRunCaseId(runTCIdSearched);
+                PTApiFieldSetup.setRunCaseId(runTCIdSearched);
                 return true;
             }
 
@@ -277,7 +292,14 @@ public class PTApiUtil {
         log.info("=== Start to Create issue For testCase Id" + PTApiFieldSetup.getTitle()) ;
         Response response = PriorTestApiClient.createIssue(PTEndPoint.createIssue, issueCreatePayload());
         log.info(response.asString());
+    }
 
+    public static void isIssueOfRunCaseIdPresent(){
+        Map<String, String> queryIssues = new HashMap<>();
+        queryIssues.put("runCaseId", PTApiFieldSetup.getRunCaseId());
+        Response response = PriorTestApiClient.checkIssueList(PTEndPoint.getIssueListByRunCaseId, queryIssues);
+
+        log.info("Issue Check List "+ response.asString());
     }
 
     public static void removeTCsFromTestCycle() {
@@ -286,12 +308,26 @@ public class PTApiUtil {
         log.info(response.asString());
     }
 
+    public static String getTestCaseIdInProject(String automationId){
+        Map<String, String> queryTCExternalId = new HashMap<>();
+        queryTCExternalId.put("externalId", automationId);
+        Response response = PriorTestApiClient.isTestCaseInProject(PTEndPoint.getTestCaseInProjectByAutomationId, queryTCExternalId);
+        if (response.statusCode() ==404){
+            log.info("==== testCase " + automationId + " Not In Project");
+            return null;
+        }
+        else {
+            JsonPath jsonPathEvaluator = response.jsonPath();
+            return jsonPathEvaluator.get("data.id");
+        }
+    }
+
     public static String setUpTestCaseId(String automationId) {
         String tcId = null;
         Map<String, String> queryTCExternalId = new HashMap<>();
         queryTCExternalId.put("externalId", automationId);
 
-        Response response = PriorTestApiClient.checkTestCase(PTEndPoint.getTestCaseInProjectByAutomationId, queryTCExternalId);
+        Response response = PriorTestApiClient.isTestCaseInProject(PTEndPoint.getTestCaseInProjectByAutomationId, queryTCExternalId);
         if (response.statusCode() == 404) {
             log.info("==== Start To Create TC For automationId " + automationId + " In Project");
             PTApiConfig.setIsTestCaseNewCreation(true);

@@ -12,6 +12,7 @@ public class PTApiFieldSetup {
     private static String caseTitle;
     private static String caseFeature;
     private static String caseModule;
+    private static String runCaseId;
 
     public static void setSeverity(String severity) {
         testSeverity = severity;
@@ -93,4 +94,11 @@ public class PTApiFieldSetup {
         return runDuration;
     }
 
+    public static void setRunCaseId(String runTCIdSearched) {
+        runCaseId = runTCIdSearched;
+    }
+
+    public static String getRunCaseId() {
+        return runCaseId;
+    }
 }

@@ -1,10 +1,13 @@
 package com.priortest.config;
 
+import org.json.JSONObject;
+
 public class PTApiPayloadConfig {
 
     private static String casePayload;
     private static String issuePayload;
     private static String testCyclePayload;
+    private static JSONObject issuePayloadJson;
 
     public static String getTestCyclePayload() {
         return testCyclePayload;
@@ -30,4 +33,12 @@ public class PTApiPayloadConfig {
         issuePayload = issuePayloadFromTestCase;
     }
 
+    public static void setIssuePayloadAsJson(JSONObject payloadJson){
+        issuePayloadJson = payloadJson;
+
+    }
+
+    public static JSONObject getIssuePayloadAsJson(){
+        return issuePayloadJson ;
+    }
 }
