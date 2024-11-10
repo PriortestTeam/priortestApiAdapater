@@ -27,6 +27,7 @@ public class PTEndPoint {
     public static String updateTestCaseStatusInTestCycle = "/testCycle/runCaseStatusUpdate";
 
     public static String retrieveAllTCsInTestCycle = "/testCycle/instance/removeTCsFromTestCycle";
+    public static String removeTCFromTestCycle = "/testCycle/instance/removeTCsFromTestCycle";
 
 
     // move to adpater api - Start
@@ -37,9 +38,6 @@ public class PTEndPoint {
     // move to adpater api - End
 
     public static String createTCinProj = "/createTestCase";
-
-    public static String removeTCFromTestCycle = "";
-    public static String removeTCsFromTestCycle = "";
 
     // Sign off
     public static String signOff = "";

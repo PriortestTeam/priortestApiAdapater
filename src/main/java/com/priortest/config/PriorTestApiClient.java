@@ -22,7 +22,7 @@ public class PriorTestApiClient {
     }
 
     public static Response getRequest(String endpoint, Map<String, String> queryParams) {
-        RequestSpecification request = RestAssured.given().header("Authorization", userToken).header("emailid", userEmail).log().body().log().uri();
+        RequestSpecification request = RestAssured.given().header("Authorization", userToken).header("emailid", userEmail).log().uri();
         for (Map.Entry<String, String> entry : queryParams.entrySet()) {
             request.param(entry.getKey(), entry.getValue());
         }
@@ -30,7 +30,7 @@ public class PriorTestApiClient {
     }
 
     private static Response postRequest(String endpoint, String body) {
-        return RestAssured.given().header("Authorization", userToken).header("emailid", userEmail).header("Content-Type", "application/json").body(body).log().body().log().uri().post(baseUrl + endpoint);
+        return RestAssured.given().header("Authorization", userToken).header("emailid", userEmail).header("Content-Type", "application/json").body(body).log().uri().log().body().post(baseUrl + endpoint);
     }
 
     public static Response checkTestCycle(String endpoint, Map<String, String> queryParams) {

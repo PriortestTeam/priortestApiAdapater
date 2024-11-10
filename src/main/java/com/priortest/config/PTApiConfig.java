@@ -1,6 +1,8 @@
 package com.priortest.config;
 
 
+import org.testng.ITestResult;
+
 public class PTApiConfig {
 
     static boolean isConnectPriorTestAPI;
@@ -17,8 +19,10 @@ public class PTApiConfig {
     private static int releaseStatus;
     private static int currentReleaseStatus;
     private static boolean newCreationOrNotStatus;
-    private static boolean isTCPayloadFromUser;
-    private static boolean isIssuePayloadFromUser;
+    private static boolean isTCPayloadFromAdapter;
+    private static boolean isIssuePayloadFromAdapter;
+    private static boolean createIssueForStep;
+    private static String issueIdentifier;
 
     public static String getTestCycleId() {
         return testCycleId;
@@ -48,12 +52,12 @@ public class PTApiConfig {
        featureTitle =  feature;
     }
 
-    public static void setIsTestCasePayloadFromUser(boolean isFromTestCaseOrNot) {
-        isTCPayloadFromUser =  isFromTestCaseOrNot;
+    public static void setIsTCPayloadFromAdapter(boolean isFromAdapter) {
+        isTCPayloadFromAdapter =  isFromAdapter;
     }
 
-    public static boolean getIsTestCasePayloadFromUser() {
-        return isTCPayloadFromUser;
+    public static boolean getIsTCPayloadFromAdapter() {
+        return isTCPayloadFromAdapter;
     }
 
     public static String getFeature() {
@@ -106,11 +110,26 @@ public class PTApiConfig {
         return currentReleaseStatus;
     }
 
-    public static boolean getIsIssuePayloadFromUser() {
-        return isIssuePayloadFromUser;
+    public static boolean getIsIssuePayloadFromAdapter() {
+        return isIssuePayloadFromAdapter;
     }
 
-    public static void setIsIssuePayloadFromUser(boolean isFromTestCaseOrNot) {
-        isIssuePayloadFromUser =  isFromTestCaseOrNot;
+    public static void setIsIssuePayloadFromAdapter(boolean isFromAdapter) {
+        isIssuePayloadFromAdapter =  isFromAdapter;
+    }
+
+    public static void setCreateIssueForStep(boolean bStep) {
+        createIssueForStep = bStep;
+    }
+    public static boolean getCreateIssueForStep() {
+        return createIssueForStep;
+    }
+
+    public static String getIssueIdentifier() {
+        return issueIdentifier;
+    }
+
+    public static void setIssueIdentifier(String identifier) {
+         issueIdentifier = identifier;
     }
 }
