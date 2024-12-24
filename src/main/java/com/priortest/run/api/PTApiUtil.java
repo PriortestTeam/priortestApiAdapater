@@ -1,12 +1,6 @@
 package com.priortest.run.api;
 
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.*;
 import com.priortest.config.*;
-import com.priortest.model.ConfigManager;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.apache.logging.log4j.LogManager;
@@ -14,9 +8,6 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,7 +20,7 @@ public class PTApiUtil {
     private static final Logger log = LogManager.getLogger(PTApiUtil.class);
     public static List<String> testCaseIds = new ArrayList<>();
     static String PTProjectId = PTConstant.getPTProjectId();
-    static ConfigManager configManager = ConfigManager.getInstance();
+
     private String casePayload;
 
     public static void setUpTestCycle(String testCycleTitle) {
