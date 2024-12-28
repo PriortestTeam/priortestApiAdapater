@@ -19,8 +19,8 @@ public class PTApiConfig {
     private static int releaseStatus;
     private static int currentReleaseStatus;
     private static boolean newCreationOrNotStatus;
-    private static boolean isTCPayloadFromAdapter;
-    private static boolean isIssuePayloadFromAdapter;
+    private static boolean isTCPayloadFromAdapter =true;
+    private static boolean isIssuePayloadFromAdapter =true;
     private static boolean createIssueForStep;
     private static String issueIdentifier;
 

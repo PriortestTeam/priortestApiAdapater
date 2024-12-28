@@ -167,6 +167,9 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             // setUpTestCaseId - retrieve testCase id as per given automationId
             // or create test case and return the created id
             log.info("==========Start Setup Test Case ID========== " + externalTcId);
+            externalTcId = externalTcId.length() > 50
+                    ? externalTcId.substring(0, 50)
+                    : externalTcId;
             testCaseId = PTApiUtil.setUpTestCaseId(externalTcId);
 
             // put testCase Into testCycle
@@ -382,9 +385,10 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                 automationId = annotation.automationId();
                 feature = annotation.feature();
                 testName = annotation.testName();
-                PTApiFieldSetup.setTitle(testName);
+                if (testName.isEmpty()) {
+                    testName = tr.getMethod().getMethodName(); // When testCaseName Not set in TestCaseApi
+                }
                 PTApiFieldSetup.setFeature(feature);
-
                 priority = annotation.priority();
                 severity = annotation.severity();
                 caseCategory = annotation.caseCategory();
@@ -400,6 +404,9 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             processAssertionResults(tr);
             // setUpTestCaseId - Retrieve testCase id As Per Given automationId
             // Create testCase And Return The Created Id
+            externalTcId = externalTcId.length() > 50
+                    ? externalTcId.substring(0, 50)
+                    : externalTcId;
             testCaseId = PTApiUtil.setUpTestCaseId(externalTcId);
 
             // Put testCase Into a testCycle
