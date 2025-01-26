@@ -497,10 +497,9 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                 String[] newIssueList = new String[]{newCreatedIssueId}; // When created new issue
 
                 // later to add deal with append from system
-                if (issueIdsInTestCase.length != 0) {
+                if (issueListFromSystem!=null) {
                     String[] issueFromSystem =null;
-                    // deal with append from system
-                    if (issueListFromSystem!=null) {
+                    // Deal with append from system
                         List<String> extractedIds = new ArrayList<>();
                         if (issueListFromSystem.containsKey("id")) {
                             Object idList = issueListFromSystem.get("id");
@@ -520,7 +519,6 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                         newIssueList = Stream
                                 .concat(Arrays.stream(newIssueList), Arrays.stream(issueFromSystem))
                                 .toArray(String[]::new);
-                    }
                 }
                 String methodName = tr.getMethod().getMethodName();
                 failedTestCases.put(methodName, newIssueList);
