@@ -88,8 +88,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                 return true;  // Keyword found
             }
         }
-        return false;  // Ke
-        // yword not found in any title
+        return false;
     }
 
     @Override
@@ -495,11 +494,33 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             stepResults.remove();
             if (newCreatedIssueId != null) {
                 log.info("Added MethodName And IssueList For Issue Updating In TestCase");
-                String[] newIssueList = new String[]{newCreatedIssueId};
+                String[] newIssueList = new String[]{newCreatedIssueId}; // When created new issue
+
+                // later to add deal with append from system
                 if (issueIdsInTestCase.length != 0) {
-                    newIssueList = Stream
-                            .concat(Arrays.stream(newIssueList), Arrays.stream(issueIdsInTestCase))
-                            .toArray(String[]::new);
+                    String[] issueFromSystem =null;
+                    // deal with append from system
+                    if (issueListFromSystem!=null) {
+                        List<String> extractedIds = new ArrayList<>();
+                        if (issueListFromSystem.containsKey("id")) {
+                            Object idList = issueListFromSystem.get("id");
+                            if (idList instanceof List) {
+                                for (Object obj : (List<?>) idList) {
+                                    if (obj instanceof Map) {
+                                        Map<?, ?> issue = (Map<?, ?>) obj;
+                                        if (issue.containsKey("id")) {
+                                            extractedIds.add(issue.get("id").toString());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // Convert List to String[]
+                        issueFromSystem = extractedIds.toArray(new String[0]);
+                        newIssueList = Stream
+                                .concat(Arrays.stream(newIssueList), Arrays.stream(issueFromSystem))
+                                .toArray(String[]::new);
+                    }
                 }
                 String methodName = tr.getMethod().getMethodName();
                 failedTestCases.put(methodName, newIssueList);

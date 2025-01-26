@@ -230,7 +230,7 @@ public class PTApiUtil {
             issueCPayload.put("caseCategory", PTApiFieldSetup.getCategory());
 
             String failureMessage =PTApiFieldSetup.getFailureMessage();
-            failureMessage = failureMessage.length() > 100 ? failureMessage.substring(0, 100) : failureMessage;
+            failureMessage = failureMessage.length() > 300 ? failureMessage.substring(0, 300) : failureMessage;
 
             issueCPayload.put("description", failureMessage);
             issueCPayload.put("projectId", PTProjectId);
@@ -246,7 +246,7 @@ public class PTApiUtil {
             issueCPayload.put("severity", PTApiFieldSetup.getSeverity());
 
             String issueTitle = PTApiFieldSetup.getIssueTitle();
-            issueTitle = issueTitle.length() > 30 ? issueTitle.substring(0, 30) : issueTitle;
+            issueTitle = issueTitle.length() > 100 ? issueTitle.substring(0, 100) : issueTitle;
 
             issueCPayload.put("title", issueTitle);
 
