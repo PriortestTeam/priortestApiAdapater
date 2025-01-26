@@ -228,7 +228,11 @@ public class PTApiUtil {
             JSONObject issueCPayload = new JSONObject();
             issueCPayload.put("browser", PTApiConfig.getBrowser());
             issueCPayload.put("caseCategory", PTApiFieldSetup.getCategory());
-            issueCPayload.put("description", PTApiFieldSetup.getFailureMessage());
+
+            String failureMessage =PTApiFieldSetup.getFailureMessage();
+            failureMessage = failureMessage.length() > 100 ? failureMessage.substring(0, 100) : failureMessage;
+
+            issueCPayload.put("description", failureMessage);
             issueCPayload.put("projectId", PTProjectId);
             issueCPayload.put("env", PTConstant.getPTEnv());
 
@@ -241,7 +245,11 @@ public class PTApiUtil {
             issueCPayload.put("priority", PTApiFieldSetup.getPriority());
             issueCPayload.put("severity", PTApiFieldSetup.getSeverity());
 
-            issueCPayload.put("title", PTApiFieldSetup.getIssueTitle());
+            String issueTitle = PTApiFieldSetup.getIssueTitle();
+            issueTitle = issueTitle.length() > 30 ? issueTitle.substring(0, 30) : issueTitle;
+
+            issueCPayload.put("title", issueTitle);
+
             issueCPayload.put("testDevice", PTConstant.getPTPlatform());
             issueCPayload.put("runcaseId", PTApiFieldSetup.getRunCaseId());
 
@@ -362,10 +370,10 @@ public class PTApiUtil {
         JsonPath jsonPathEvaluator = response.jsonPath();
         if (response.statusCode() == 200) {
             Map<String, Object> dataMap = jsonPathEvaluator.getMap("data");
-            log.info("============== " + response.asString());
+            log.info("Issue List: " + response.asString());
             return dataMap;
         } else {
-            log.warn("=============== " + response.asString());
+            log.warn("No Issue: " + response.asString());
             return null;
         }
 

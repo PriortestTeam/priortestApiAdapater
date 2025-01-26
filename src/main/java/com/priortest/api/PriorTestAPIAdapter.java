@@ -20,6 +20,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 
 public class PriorTestAPIAdapter extends TestListenerAdapter {
@@ -27,11 +28,69 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
     private static final Logger log = LogManager.getLogger(PriorTestAPIAdapter.class);
     private static final ThreadLocal<Set<String>> calledStepMethods = ThreadLocal.withInitial(HashSet::new);
     private static final ThreadLocal<Map<String, Boolean>> stepStatusMap = ThreadLocal.withInitial(HashMap::new);
+    private static final ThreadLocal<List<StepResult>> stepResults = ThreadLocal.withInitial(ArrayList::new);
+    private final Map<String, String[]> failedTestCases = new HashMap<>();
     ArrayList<String> tcLists = new ArrayList<String>();
     private long startTime;
     private String stepDesc;
     private boolean testStepPassed;
     private boolean stepStatus;
+
+    private static String handleIssueCreation(Map<String, Object> issueList, String failedStepIdentifier, ITestResult tr) {
+        String newIssueId = null;
+        if (issueList != null) {
+            log.info("Verifying failedStepIdentifier: " + failedStepIdentifier + " In " + issueList);
+            if (isFailedStepIdentifierPresent(issueList, failedStepIdentifier)) {
+                log.warn("Existing Matched Issue Present, No New Issue Required to Be Created");
+            } else {
+                /// if (failedStepsSet.contains(failedStepIdentifier)) {
+                //    log.warn("Issue Already Exists For the Failed Step: " + failedStepIdentifier);
+                //} else {
+                // Add the step to the set and create a new issue
+                failedStepsSet.add(failedStepIdentifier);
+                log.info("Creating New Issue For Failed Step: " + failedStepIdentifier);
+                PTApiFieldSetup.setIssueTitle(failedStepIdentifier);
+                PTApiFieldSetup.setFailureMessage(failedStepIdentifier);
+                PTApiConfig.setCreateIssueForStep(true);
+                newIssueId = PTApiUtil.createIssue();
+                PTApiConfig.setCreateIssueForStep(false);
+            }
+            //}
+        } else {
+            // Add the step to the set and create a new issue
+            failedStepsSet.add(failedStepIdentifier);
+            log.info("Creating New Issue For Failed Step: " + failedStepIdentifier);
+            PTApiFieldSetup.setIssueTitle(failedStepIdentifier);
+            PTApiFieldSetup.setFailureMessage(failedStepIdentifier + ": " + tr.getThrowable().getMessage());
+            PTApiConfig.setCreateIssueForStep(true);
+            newIssueId = PTApiUtil.createIssue();
+            PTApiConfig.setCreateIssueForStep(false);
+
+        }
+        return newIssueId;
+    }
+
+    public static boolean isFailedStepIdentifierPresent(Map<String, Object> issueList, String failedStepIdentifier) {
+        // Get the "id" array from issueList as a List of Maps
+        List<Map<String, String>> idList = (List<Map<String, String>>) issueList.get("id");
+
+        // Check if idList is not null or empty
+        if (idList == null || idList.isEmpty()) {
+            log.debug("No items In ID List");
+            return false;
+        }
+
+        // Loop through each item in the idList and check the "title"
+        for (Map<String, String> item : idList) {
+            String title = item.get("title");
+            if (title != null && title.contains(failedStepIdentifier)) {
+                log.info("Found Issue Title Contain： " + failedStepIdentifier);
+                return true;  // Keyword found
+            }
+        }
+        return false;  // Ke
+        // yword not found in any title
+    }
 
     @Override
     public void onTestStart(ITestResult tr) {
@@ -65,8 +124,6 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
         calledStepMethods.get().add(methodName); // Add the method name to the called steps set
     }
 
-
-    private static ThreadLocal<List<StepResult>> stepResults = ThreadLocal.withInitial(ArrayList::new);
     public void trackStep(Object testInstance, String methodName, boolean status) {
         List<StepResult> results = stepResults.get();
         try {
@@ -83,7 +140,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
 
                 // Add step result to the list for ordered processing
                 results.add(new StepResult(stepDesc, status, linkedIssueId));
-                log.info("---------------------"+  results.size());
+                log.info("---------------------" + results.size());
 
             } else {
                 log.warn("No TestStepApi Annotation Found On Method: " + methodName);
@@ -93,6 +150,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
         }
 
     }
+
     public Map<String, Boolean> getStepStatusMap() {
         return stepStatusMap.get();
     }
@@ -133,10 +191,10 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
     public void onTestSuccess(ITestResult tr) {
         try {
             TestCaseApi annotation = tr.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestCaseApi.class);
-           // printExecutedSteps(tr);
+            // printExecutedSteps(tr);
             String testCaseId;
             String automationId = null;
-            String[] issueId = null;
+            String[] issueIdInTestCase = null;
             String feature;
             String testName;
             String externalTcId = null;
@@ -154,7 +212,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                 PTApiFieldSetup.setPriority(priority);
                 PTApiFieldSetup.setSeverity(severity);
 
-                issueId = annotation.issueId();
+                issueIdInTestCase = annotation.issueId();
                 testName = annotation.testName();
                 if (testName.isEmpty()) {
                     testName = tr.getMethod().getMethodName();
@@ -167,9 +225,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             // setUpTestCaseId - retrieve testCase id as per given automationId
             // or create test case and return the created id
             log.info("==========Start Setup Test Case ID========== " + externalTcId);
-            externalTcId = externalTcId.length() > 50
-                    ? externalTcId.substring(0, 50)
-                    : externalTcId;
+            externalTcId = externalTcId.length() > 50 ? externalTcId.substring(0, 50) : externalTcId;
             testCaseId = PTApiUtil.setUpTestCaseId(externalTcId);
 
             // put testCase Into testCycle
@@ -178,25 +234,29 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             long duration = endTime - startTime;
             PTApiFieldSetup.setRunDuration(duration);
             PTApiUtil.setUpTestRunInTestCycle(testCaseId, "PASS");
+            // To Close Issue From Run Case
+            if (issueIdInTestCase!=null){
+                log.info("Issue To Be Closed For " + tr.getName());
+                PTApiUtil.updateAndCloseIssue(issueIdInTestCase, PTApiFieldSetup.getRunCaseId());
 
-            Map<String, Object> issueList = PTApiUtil.isIssueOfRunCaseIdPresent();
-
-            // To Close Issue
-            if (issueList != null) {
-                log.info("Existing Issue Present, Going to Close Issue ");
-                issueId = getIssueIds(issueList);
-                PTApiUtil.updateAndCloseIssue(issueId, PTApiFieldSetup.getRunCaseId());
-            } else {
-                PTApiUtil.updateAndCloseIssue(issueId, PTApiFieldSetup.getRunCaseId());
-                log.info("No Issue To Be Closed For " + tr.getName());
+                // Set issue to empty in Run Case
+                String methodName = tr.getMethod().getMethodName();
+                log.info("Added MethodName To failedTestCases: ");
+                failedTestCases.put(methodName, new String[]{});
+            }
+            // To Retrieve Issue From System and Close It
+            // In case issue not lined In run Case
+            Map<String, Object> issueListInSystem = PTApiUtil.isIssueOfRunCaseIdPresent();
+            if (issueListInSystem != null) {
+                log.info("Existing Issue Present, Going to Close Issue: ");
+                String[] issueIdInSystem = getIssueIds(issueListInSystem);
+                PTApiUtil.updateAndCloseIssue(issueIdInSystem, PTApiFieldSetup.getRunCaseId());
             }
             // Add runCase ids For Removing None Executed testCase After Execution
+            log.info("Added Test Id For Removing List: ");
             PTApiUtil.addTestCaseId(testCaseId);
             stepResults.remove();
 
-            // Set issue to empty and remove issue ids
-            String methodName = tr.getMethod().getMethodName();
-            failedTestCases.put(methodName,new String[]{});
         } catch (Exception e) {
             log.error("An error occurred in onTestSuccess: " + e.getMessage(), e);
         }
@@ -266,8 +326,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                 // Get the class name of the failed test method
                 String className = testContext.getAllTestMethods()[0].getTestClass().getName();
                 // Convert class name to file path
-                String javaFilePath = "src" + File.separator + "test" + File.separator + "java" + File.separator +
-                        className.replace('.', File.separatorChar) + ".java";
+                String javaFilePath = "src" + File.separator + "test" + File.separator + "java" + File.separator + className.replace('.', File.separatorChar) + ".java";
 
                 File javaFile = new File(javaFilePath);
                 String absolutePath = javaFile.getAbsolutePath();
@@ -276,8 +335,14 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                     log.info("Start Update Issue in File : " + absolutePath);
                     // Update the Java file with the issues
                     String[] issues = failedTestCases.get(methodName);
-                    log.info("------------------------"+issues  +"----------");
-                    UpdateIssueOnFinish.updateIssueIds(new File(javaFilePath), methodName, issues);
+                    if (issues.length == 0) {
+                        log.info("Updated Issue To Blank In Test Case");
+                        UpdateIssueOnFinish.updateIssueIds(new File(javaFilePath), methodName, issues);
+                    } else {
+                        UpdateIssueOnFinish.updateIssueIds(new File(javaFilePath), methodName, issues);
+                        log.info("Updated Issues In Test Case");
+                    }
+
                 } else {
                     log.error("File not found: " + absolutePath);
                 }
@@ -288,9 +353,6 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
         }
 
     }
-
-
-
 
     private String logFailureDetails(ITestResult result) {
         Throwable throwable = result.getThrowable();
@@ -329,41 +391,6 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
         return failedStepIdentifier;
     }
 
-    private static String handleIssueCreation(Map<String, Object> issueList, String failedStepIdentifier, ITestResult tr) {
-        String newIssueId = null;
-        if (issueList != null) {
-            log.info("Verifying failedStepIdentifier: " + failedStepIdentifier + " In " + issueList);
-            if (isFailedStepIdentifierPresent(issueList, failedStepIdentifier)) {
-                log.warn("Existing Matched Issue Present, No New Issue Required to Be Created");
-            } else {
-               /// if (failedStepsSet.contains(failedStepIdentifier)) {
-                //    log.warn("Issue Already Exists For the Failed Step: " + failedStepIdentifier);
-                //} else {
-                    // Add the step to the set and create a new issue
-                    failedStepsSet.add(failedStepIdentifier);
-                    log.info("Creating New Issue For Failed Step: " + failedStepIdentifier);
-                    PTApiFieldSetup.setIssueTitle(failedStepIdentifier);
-                    PTApiFieldSetup.setFailureMessage(failedStepIdentifier);
-                    PTApiConfig.setCreateIssueForStep(true);
-                    newIssueId = PTApiUtil.createIssue();
-                    PTApiConfig.setCreateIssueForStep(false);
-                }
-            //}
-        } else {
-            // Add the step to the set and create a new issue
-            failedStepsSet.add(failedStepIdentifier);
-            log.info("Creating New Issue For Failed Step: " + failedStepIdentifier);
-            PTApiFieldSetup.setIssueTitle(failedStepIdentifier);
-            PTApiFieldSetup.setFailureMessage(failedStepIdentifier + ": " + tr.getThrowable().getMessage());
-            PTApiConfig.setCreateIssueForStep(true);
-            newIssueId = PTApiUtil.createIssue();
-            PTApiConfig.setCreateIssueForStep(false);
-
-        }
-        return newIssueId;
-    }
-
-
     @Override
     public void onTestFailure(ITestResult tr) {
         try {
@@ -373,7 +400,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             TestCaseApi annotation = tr.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestCaseApi.class);
             String testCaseId;
             String automationId = null;
-            String[] issueId = null;
+            String[] issueIdsInTestCase = null;
             String feature;
             String testName;
             String priority;
@@ -401,15 +428,13 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                 PTApiFieldSetup.setTitle(testName);
 
                 externalTcId = feature + "_" + automationId;
-                issueId = annotation.issueId();
-                log.info("==========onTestFailure========== " + externalTcId + " TestCaseName: " + testName);
+                issueIdsInTestCase = annotation.issueId();
+                log.info("==========onTestFailure========== externalTcId: " + externalTcId + " TestCaseName: " + testName + " Issue：" + String.join(", ", issueIdsInTestCase));
             }
             processAssertionResults(tr);
             // setUpTestCaseId - Retrieve testCase id As Per Given automationId
             // Create testCase And Return The Created Id
-            externalTcId = externalTcId.length() > 50
-                    ? externalTcId.substring(0, 50)
-                    : externalTcId;
+            externalTcId = externalTcId.length() > 50 ? externalTcId.substring(0, 50) : externalTcId;
             testCaseId = PTApiUtil.setUpTestCaseId(externalTcId);
 
             // Put testCase Into a testCycle
@@ -432,85 +457,66 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             String failedStepIdentifier;
             failedStepIdentifier = generateFailedStepIdentifier(tr, failMessage, issueIdentifier);
 
-            // Update or Close existing issues
+            // Update or Close Existing Issues
             PTApiFieldSetup.setTitle(tr.getName());
-            Map<String, Object> issueList = PTApiUtil.isIssueOfRunCaseIdPresent();
+            // get Issue List From DB as per the run CaseId
+            // In case missing issue in Test Case
+            Map<String, Object> issueListFromSystem = PTApiUtil.isIssueOfRunCaseIdPresent();
+
             List<StepResult> results = stepResults.get();
+            log.info("adsfasdfadsf========= " + results.size());
             boolean issueCreated = false;
-            String newIssueId=null;
+            String newCreatedIssueId = null;
             if (results != null && !results.isEmpty()) {
                 for (StepResult stepResult : results) {
-                    // deal with step fails
-                    if (!stepResult.getStatus()){
+                    log.info("stepResult=======" + stepResult.getStatus());
+                    // Deal with step Fails
+                    if (!stepResult.getStatus()) {
                         log.info("Step: { " + stepResult.getStepDesc() + " } Status: " + stepResult.getStatus());
-                        newIssueId = handleIssueCreation(issueList, failedStepIdentifier + stepResult.getStepDesc(), tr);
-
+                        newCreatedIssueId = handleIssueCreation(issueListFromSystem, failedStepIdentifier + stepResult.getStepDesc(), tr);
                         issueCreated = true;
-                    }else {
-                       if (issueList!=null){
-                           log.info("Step: { " + stepResult.getStepDesc() + "} Status: " + stepResult.getStatus());
-                           handleIssueCloseForStepPass(issueList,stepResult.getStepDesc());
-                       }
+                    } else {
+                        if (issueListFromSystem != null) {
+                            log.info("Step: { " + stepResult.getStepDesc() + "} Status: " + stepResult.getStatus());
+                            handleIssueCloseForStepPass(issueListFromSystem, stepResult.getStepDesc());
+                        }
                     }
                 }
             }
             // deal with test case level fails
-            if (!issueCreated){
-                log.warn("Create Issue for This Case " +failedStepIdentifier);
-                newIssueId = handleIssueCreation(issueList, failedStepIdentifier, tr);
+            if (!issueCreated) {
+                log.warn("Create Issue for This Case " + failedStepIdentifier);
+                newCreatedIssueId = handleIssueCreation(issueListFromSystem, failedStepIdentifier, tr);
             }
+
+            log.info("Added TestCase Id From Removing:");
             PTApiUtil.addTestCaseId(testCaseId);
+
             stepResults.remove();
-
-
-            String[] newIssueList = new String[]{newIssueId};
-            String[] combinedIssueList = new String[0];
-            if (issueId.length!=0) {
-                newIssueList = new String[issueId.length + newIssueList.length];
+            if (newCreatedIssueId != null) {
+                log.info("Added MethodName And IssueList For Issue Updating In TestCase");
+                String[] newIssueList = new String[]{newCreatedIssueId};
+                if (issueIdsInTestCase.length != 0) {
+                    newIssueList = Stream
+                            .concat(Arrays.stream(newIssueList), Arrays.stream(issueIdsInTestCase))
+                            .toArray(String[]::new);
+                }
+                String methodName = tr.getMethod().getMethodName();
+                failedTestCases.put(methodName, newIssueList);
             }
-
-            String methodName = tr.getMethod().getMethodName();
-            failedTestCases.put(methodName, newIssueList);
-            System.out.println(newIssueList.length + newIssueList.toString());
-
         } catch (Exception e) {
             log.error("An Error Occurred In onTestFailure: " + e.getMessage(), e);
         }
     }
-    private final Map<String, String[]> failedTestCases = new HashMap<>();
-
 
     private void handleIssueCloseForStepPass(Map<String, Object> issueList, String failedStepIdentifier) {
         log.info("Check Existing Issue size:" + issueList.size());
         log.info("Check Existing Issue failedStepIdentifier:" + failedStepIdentifier);
         if (isFailedStepIdentifierPresent(issueList, failedStepIdentifier)) {
-                String[] issueId = getIssueIdsWithFailedStepIdentifier(issueList, failedStepIdentifier);
-                PTApiUtil.updateAndCloseIssue(issueId, PTApiFieldSetup.getRunCaseId());
-            }
-    }
-
-    public static boolean isFailedStepIdentifierPresent(Map<String, Object> issueList, String failedStepIdentifier) {
-        // Get the "id" array from issueList as a List of Maps
-        List<Map<String, String>> idList = (List<Map<String, String>>) issueList.get("id");
-
-        // Check if idList is not null or empty
-        if (idList == null || idList.isEmpty()) {
-            log.debug("No items In ID List");
-            return false;
+            String[] issueId = getIssueIdsWithFailedStepIdentifier(issueList, failedStepIdentifier);
+            PTApiUtil.updateAndCloseIssue(issueId, PTApiFieldSetup.getRunCaseId());
         }
-
-        // Loop through each item in the idList and check the "title"
-        for (Map<String, String> item : idList) {
-            String title = item.get("title");
-            if (title != null && title.contains(failedStepIdentifier)) {
-                log.info("Found Issue Title Contain： " + failedStepIdentifier);
-                return true;  // Keyword found
-            }
-        }
-        return false;  // Ke
-        // yword not found in any title
     }
-
 
     public String[] getIssueIds(Map<String, Object> issueList) {
         // Get the "id" array from issueList as a List of Maps
