@@ -23,11 +23,19 @@ public class PTApiConfig {
     private static boolean isIssuePayloadFromAdapter =true;
     private static boolean createIssueForStep;
     private static String issueIdentifier;
+    private static String testBrowser;
 
     public static String getTestCycleId() {
         return testCycleId;
     }
 
+    public static void setBrowser(String browser) {
+        testBrowser = browser;
+    }
+
+    public static String getBrowser() {
+        return testBrowser;
+    }
     public static void setTestCycleId(String id) {
         testCycleId = id;
     }

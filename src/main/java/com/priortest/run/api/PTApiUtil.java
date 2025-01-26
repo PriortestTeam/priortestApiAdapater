@@ -10,10 +10,7 @@ import org.json.JSONObject;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class PTApiUtil {
@@ -229,12 +226,12 @@ public class PTApiUtil {
         generatedIssuePlanFixDate();
         if (PTApiConfig.getIsIssuePayloadFromAdapter() || PTApiConfig.getCreateIssueForStep()) {
             JSONObject issueCPayload = new JSONObject();
-            issueCPayload.put("browser", "browser");
+            issueCPayload.put("browser", PTApiConfig.getBrowser());
             issueCPayload.put("caseCategory", PTApiFieldSetup.getCategory());
             issueCPayload.put("description", PTApiFieldSetup.getFailureMessage());
             issueCPayload.put("projectId", PTProjectId);
             issueCPayload.put("env", PTConstant.getPTEnv());
-            issueCPayload.put("fixVersion", "");
+
             issueCPayload.put("issueStatus", "新建");
             issueCPayload.put("issueVersion", PTConstant.getPTVersion());
             issueCPayload.put("module", PTApiFieldSetup.getModule());
@@ -243,19 +240,32 @@ public class PTApiUtil {
             issueCPayload.put("reportTo", "Test Person");
             issueCPayload.put("priority", PTApiFieldSetup.getPriority());
             issueCPayload.put("severity", PTApiFieldSetup.getSeverity());
-            issueCPayload.put("verifiedResult", "");
+
             issueCPayload.put("title", PTApiFieldSetup.getIssueTitle());
             issueCPayload.put("testDevice", PTConstant.getPTPlatform());
             issueCPayload.put("runcaseId", PTApiFieldSetup.getRunCaseId());
-            issueCPayload.put("duration", PTApiFieldSetup.getDuration());
-            issueCPayload.put("userImpact", PTApiFieldSetup.getUserImpact() != null ? PTApiFieldSetup.getUserImpact() : "一般");
 
-            issueCPayload.put("fixCategory", PTApiFieldSetup.getFixCategory() != null ? PTApiFieldSetup.getFixCategory() : "代码");
-            issueCPayload.put("rootcauseCategory", PTApiFieldSetup.getRootcauseCategory() != null ? PTApiFieldSetup.getRootcauseCategory() : "代码");
+            issueCPayload.put("verifiedResult", "");
+            issueCPayload.put("fixVersion", "");
+            issueCPayload.put("duration", "");
+            issueCPayload.put("userImpact", PTApiFieldSetup.getUserImpact() != null ? PTApiFieldSetup.getUserImpact() : getUserImpact());
+
+            // Handle fixCategory as list or empty array
+            if (PTApiFieldSetup.getRootcauseCategory() != null) {
+                issueCPayload.put("fixCategory", Collections.singletonList(PTApiFieldSetup.getFixCategory()));
+            } else {
+                issueCPayload.put("fixCategory", new JSONArray());
+            }
+
+            // Handle rootcauseCategory as list or empty array
+            if (PTApiFieldSetup.getRootcauseCategory() != null) {
+                issueCPayload.put("rootcauseCategory", Collections.singletonList(PTApiFieldSetup.getRootcauseCategory()));
+            } else {
+                issueCPayload.put("rootcauseCategory", new JSONArray());            }
+
             issueCPayload.put("rootCause", PTApiFieldSetup.getRootCause() != null ? PTApiFieldSetup.getRootCause() : "未分析");
-            issueCPayload.put("frequency", PTApiFieldSetup.getFrequency() != null ? PTApiFieldSetup.getFrequency() : "经常");
+            issueCPayload.put("frequency", PTApiFieldSetup.getFrequency() != null ? PTApiFieldSetup.getFrequency() : "");
             issueCPayload.put("issueSource", PTApiFieldSetup.getIssueSource() != null ? PTApiFieldSetup.getIssueSource() : "自动");
-
 
             JSONObject customFieldDatas = new JSONObject();
             issueCPayload.put("customFieldDatas", customFieldDatas);
@@ -269,9 +279,20 @@ public class PTApiUtil {
             log.info("============== Issue Payload Created By User :" + issuePayload);
             return issuePayload.toString();
         }
-
     }
 
+    public static String getUserImpact() {
+        String priority = PTApiFieldSetup.getPriority();
+        if ("高".equals(priority)) {
+            return "重大";
+        } else if ("低".equals(priority)) {
+            return "轻度";
+        } else if ("中".equals(priority)) {
+            return "显著";
+        } else {
+            return "一般"; // Default value if priority is not 高, 中, or 低
+        }
+    }
     private static boolean updateTCStatus(String status) {
         int stepStatusCode = 5;
         boolean addedOn = false;

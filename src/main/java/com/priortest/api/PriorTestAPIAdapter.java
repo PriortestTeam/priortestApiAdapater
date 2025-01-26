@@ -276,6 +276,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                     log.info("Start Update Issue in File : " + absolutePath);
                     // Update the Java file with the issues
                     String[] issues = failedTestCases.get(methodName);
+                    log.info("------------------------"+issues  +"----------");
                     UpdateIssueOnFinish.updateIssueIds(new File(javaFilePath), methodName, issues);
                 } else {
                     log.error("File not found: " + absolutePath);
@@ -388,6 +389,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                 if (testName.isEmpty()) {
                     testName = tr.getMethod().getMethodName(); // When testCaseName Not set in TestCaseApi
                 }
+
                 PTApiFieldSetup.setFeature(feature);
                 priority = annotation.priority();
                 severity = annotation.severity();
@@ -396,6 +398,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                 PTApiFieldSetup.setCategory(caseCategory);
                 PTApiFieldSetup.setSeverity(severity);
                 PTApiFieldSetup.setPriority(priority);
+                PTApiFieldSetup.setTitle(testName);
 
                 externalTcId = feature + "_" + automationId;
                 issueId = annotation.issueId();

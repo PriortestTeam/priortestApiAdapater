@@ -20,9 +20,10 @@ public class PTApiFieldSetup {
     private static String rootcauseCategory;
     private static String rootCause;
     private static String frequency;
-    private static String issueSoucre;
+    private static String issueSource;
     private static String issueDuration;
     private static String issueTitle;
+    private static String testBrowser;
 
     public static String getFailureMessage() {
         return failureMessage;
@@ -106,7 +107,7 @@ public class PTApiFieldSetup {
     }
 
     public static void setIssueSource(String source) {
-         issueSoucre = source;
+        issueSource = source;
     }
 
     public static String getCategory() {
@@ -175,7 +176,7 @@ public class PTApiFieldSetup {
     }
 
     public static String getIssueSource() {
-        return issueSoucre;
+        return issueSource;
     }
 
 
