@@ -1,5 +1,7 @@
 package com.priortest.config;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.testng.asserts.IAssert;
 import org.testng.asserts.SoftAssert;
 
@@ -9,19 +11,19 @@ import java.util.List;
 public class CustomSoftAssert extends SoftAssert {
 
     private static ThreadLocal<List<AssertionResult>> assertionResults = ThreadLocal.withInitial(() -> new ArrayList<>());
-
+    private static final Logger log = LogManager.getLogger(CustomSoftAssert.class);
     @Override
     public void onAssertSuccess(IAssert<?> assertCommand) {
         super.onAssertSuccess(assertCommand);
         assertionResults.get().add(new AssertionResult(true, assertCommand.getMessage()));
-        System.out.println("PASS: " + assertCommand.getMessage());
+        log.info ("PASS:   " + assertCommand.getMessage());
     }
 
     @Override
     public void onAssertFailure(IAssert<?> assertCommand, AssertionError ex) {
         super.onAssertFailure(assertCommand, ex);
         assertionResults.get().add(new AssertionResult(false, assertCommand.getMessage()));
-        System.out.println("FAIL: " + assertCommand.getMessage() + " - " + ex.getMessage());
+        log.info ("FAIL: " + assertCommand.getMessage() + " - " + ex.getMessage());
     }
 
     public static List<AssertionResult> getAssertionResults() {

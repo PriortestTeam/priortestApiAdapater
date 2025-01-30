@@ -3,13 +3,13 @@ package com.priortest.step;
 public class StepResult {
     private String stepDesc;
     private boolean status;
-    private String linkedIssueId;
+    private String errorMessage;
 
     // Constructor
-    public StepResult(String stepDesc, boolean status, String linkedIssueId) {
+    public StepResult(String stepDesc, boolean status, String errorMessage) {
         this.stepDesc = stepDesc;
         this.status = status;
-        this.linkedIssueId = linkedIssueId;
+        this.errorMessage = errorMessage;
     }
 
     // Getters
@@ -21,8 +21,18 @@ public class StepResult {
         return status;
     }
 
-    public String getLinkedIssueId() {
-        return linkedIssueId;
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    // toString() for logging/debugging
+    @Override
+    public String toString() {
+        return "StepResult{" +
+                "stepDesc='" + stepDesc + '\'' +
+                ", status=" + status +
+                ", errorMessage='" + errorMessage + '\'' +
+                '}';
     }
 }
 

@@ -20,14 +20,15 @@ public class PTApiUtil {
 
     private String casePayload;
 
+    /*
+     if testCycleTitle is found  - do not create
+     if testCycleTitle is not found - created
+     testCycleTitle passed by main branch
+     */
     public static void setUpTestCycle(String testCycleTitle) {
-        // if testCycleTitle is there - do not create
-        // if testCycleTitle is not there - created
-        //  - testCycleTitle passed by main branch
-        log.info("========= testCycle Title: Verify " + testCycleTitle + "Present In DB");
         boolean isTestCyclePresent = testCycleTitlePresent(testCycleTitle);
         if (isTestCyclePresent) {
-            log.debug("========= testCycle: " + testCycleTitle + " Exist ");
+            log.info("========= testCycle: " + testCycleTitle + " Exist ");
         } else {
             log.warn("========= Start Creating testCycle: " + testCycleTitle);
             createTestCycle(testCycleTitle);
@@ -38,7 +39,6 @@ public class PTApiUtil {
         Map<String, String> queryParameter = new HashMap<>();
         queryParameter.put("title", testCycleTitle);
         Response response = PriorTestApiClient.checkTestCycle(PTEndPoint.retrieveTestCycleAsTitle, queryParameter);
-        log.debug("================= Here Is Response" + response.asString());
         if (response.statusCode() != 200) {
             log.error("API Request Code: " + response.statusCode() + " 查无记录");
             return false;

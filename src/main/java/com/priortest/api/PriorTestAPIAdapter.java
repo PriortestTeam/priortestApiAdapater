@@ -9,6 +9,7 @@ import com.priortest.config.PTConstant;
 import com.priortest.run.api.PTApiUtil;
 import com.priortest.run.api.UpdateIssueOnFinish;
 import com.priortest.step.StepResult;
+import com.priortest.step.StepResultTracker;
 import io.restassured.RestAssured;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -94,8 +95,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
     @Override
     public void onTestStart(ITestResult tr) {
         startTime = System.currentTimeMillis();
-        calledStepMethods.get().clear();
-        stepResults.set(new ArrayList<>());
+        StepResultTracker.clearStepResults(); // Prevent stale data from previous tests
         PTApiConfig.setIsTestCaseNewCreation(false);
     }
 
@@ -103,94 +103,24 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
         List<CustomSoftAssert.AssertionResult> results = CustomSoftAssert.getAssertionResults();
 
         if (results != null && !results.isEmpty()) {
-            System.out.println("Assertion results for test: " + result.getMethod().getMethodName());
+            log.info("Assertion results for test: " + result.getMethod().getMethodName());
             for (CustomSoftAssert.AssertionResult assertionResult : results) {
                 String status = assertionResult.getStatus() ? "PASS" : "FAIL";
-                System.out.println("Step: " + assertionResult.getMessage() + " Status: " + status);
+                log.info("Step: " + assertionResult.getMessage() + " Status: " + status);
             }
         } else {
-            System.out.println("No assertions were tracked for this test.");
+           log.info("No assertions were tracked for this test.");
         }
 
         // Clear results after processing to avoid cross-test contamination
         CustomSoftAssert.clearResults();
     }
 
-    public void trackStep_b(String methodName, boolean status) {
-        log.debug("Tracking step: " + methodName + " with status: " + status);
-        // Only set to true if it has not previously been set to false
-        stepStatusMap.get().merge(methodName, status, (oldStatus, newStatus) -> oldStatus && newStatus);
-        calledStepMethods.get().add(methodName); // Add the method name to the called steps set
-    }
-
-    public void trackStep(Object testInstance, String methodName, boolean status) {
-        List<StepResult> results = stepResults.get();
-        try {
-            // Retrieve the method and its annotation details
-            Method method = testInstance.getClass().getDeclaredMethod(methodName);
-            if (method.isAnnotationPresent(TestStepApi.class)) {
-                TestStepApi annotation = method.getAnnotation(TestStepApi.class);
-
-                // Extract step description and linked issue ID from annotation
-                String stepDesc = annotation.stepDesc();
-                String linkedIssueId = annotation.issueId();  // Adjust this if `issueId` is the right attribute name
-
-                log.info("Tracking Step: { " + methodName + " } With Status: " + status + " , Description: " + stepDesc);
-
-                // Add step result to the list for ordered processing
-                results.add(new StepResult(stepDesc, status, linkedIssueId));
-                log.info("---------------------" + results.size());
-
-            } else {
-                log.warn("No TestStepApi Annotation Found On Method: " + methodName);
-            }
-        } catch (NoSuchMethodException e) {
-            log.error("Method Not Found: " + methodName, e);
-        }
-
-    }
-
-    public Map<String, Boolean> getStepStatusMap() {
-        return stepStatusMap.get();
-    }
-
-    public void clearStepTracking() {
-        stepStatusMap.get().clear();
-        calledStepMethods.get().clear();
-    }
-
-    private void printExecutedSteps(ITestResult result) {
-        // Iterate through the called step methods and print their descriptions
-        for (String methodName : calledStepMethods.get()) {
-            try {
-                Method stepMethod = result.getInstance().getClass().getDeclaredMethod(methodName);
-                if (stepMethod.isAnnotationPresent(TestStepApi.class)) {
-                    TestStepApi annotation = stepMethod.getAnnotation(TestStepApi.class);
-                    stepDesc = annotation.stepDesc();
-                    log.info("-----------" + getStepStatusMap().get(methodName));
-                    if (Boolean.TRUE.equals(getStepStatusMap().get(methodName))) {
-                        stepStatus = true;
-                        log.info("Steps: " + "\"" + stepDesc + "\"" + " Executed Successfully in testCase: " + result.getMethod().getMethodName() + ":");
-                    } else {
-                        log.warn("Step \"" + stepDesc + "\" Failed in testCase: " + result.getMethod().getMethodName() + ":");
-                    }
-                }
-            } catch (NoSuchMethodException e) {
-                log.error("Error Retrieving Method: " + methodName);
-                e.printStackTrace();
-            } catch (Exception e) {
-                log.error("Error During Execution Of Step Method: " + methodName);
-                e.printStackTrace();
-            }
-        }
-        clearStepTracking();
-    }
 
     @Override
     public void onTestSuccess(ITestResult tr) {
         try {
             TestCaseApi annotation = tr.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestCaseApi.class);
-            // printExecutedSteps(tr);
             String testCaseId;
             String automationId = null;
             String[] issueIdInTestCase = null;
@@ -304,10 +234,11 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                 log.debug("============== " + testCycleTitle + "testCycle Title Is Not Defined, Set Default testCycle Title");
                 testCycleTitle = PTConstant.getPTEnv() + "_" + PTConstant.getPTPlatform() + "_" + PTConstant.getPTVersion();
             }
-            log.info("============== Start Setup testCycle：" + testCycleTitle);
             PTApiUtil.setUpTestCycle(testCycleTitle);
             log.info("============== End Setup testCycle：" + testCycleTitle);
+
         }
+        log.info("============== Test Suit End ===========");
     }
 
     private boolean isBlocked(ITestResult result) {
@@ -316,7 +247,6 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
 
     @Override
     public void onFinish(ITestContext testContext) {
-        log.info("============== Start - Remove Extra TCs From testCycle");
         PTApiUtil.removeTCsFromTestCycle();
         log.info("============== Finished- Remove Extra TCs From testCycle");
         try {
@@ -393,9 +323,6 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
     @Override
     public void onTestFailure(ITestResult tr) {
         try {
-            //stepResults.clear();
-            //stepDesc = null; // Reset stepDesc to prevent carry-over
-            //printExecutedSteps(tr); // Get TestStep Description of current testCase
             TestCaseApi annotation = tr.getMethod().getConstructorOrMethod().getMethod().getAnnotation(TestCaseApi.class);
             String testCaseId;
             String automationId = null;
@@ -462,7 +389,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             // In case missing issue in Test Case
             Map<String, Object> issueListFromSystem = PTApiUtil.isIssueOfRunCaseIdPresent();
 
-            List<StepResult> results = stepResults.get();
+            List<StepResult> results = StepResultTracker.getStepResults();
             log.info("adsfasdfadsf========= " + results.size());
             boolean issueCreated = false;
             String newCreatedIssueId = null;
