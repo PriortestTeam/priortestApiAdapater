@@ -230,7 +230,7 @@ public class PTApiUtil {
             issueCPayload.put("caseCategory", PTApiFieldSetup.getCategory());
 
             String failureMessage =PTApiFieldSetup.getFailureMessage();
-            failureMessage = failureMessage.length() > 300 ? failureMessage.substring(0, 300) : failureMessage;
+            failureMessage = failureMessage.length() > 350 ? failureMessage.substring(0, 350) : failureMessage;
 
             issueCPayload.put("description", failureMessage);
             issueCPayload.put("projectId", PTProjectId);
@@ -246,7 +246,7 @@ public class PTApiUtil {
             issueCPayload.put("severity", PTApiFieldSetup.getSeverity());
 
             String issueTitle = PTApiFieldSetup.getIssueTitle();
-            issueTitle = issueTitle.length() > 100 ? issueTitle.substring(0, 100) : issueTitle;
+            issueTitle = issueTitle.length() > 120 ? issueTitle.substring(0, 120) : issueTitle;
 
             issueCPayload.put("title", issueTitle);
 
@@ -480,12 +480,13 @@ public class PTApiUtil {
             Map<String, String> queryIssues = new HashMap<>();
             queryIssues.put("runCaseId", runCaseId.trim());
             Response response = PriorTestApiClient.checkIssueList(PTEndPoint.getIssueListByRunCaseId, queryIssues);
-            log.info("===== response code: " + response.statusCode());
+
             if (response.statusCode() == 200) {
-                log.info("========= No Closed Issue Found " + runCaseId + " " + response.asString());
+                log.warn("=========  Existing ---Issues Found  " + issueId.length+ " " + response.asString());
                 JsonPath jsonPathEvaluator = response.jsonPath();
                 List<String> issueIdList = jsonPathEvaluator.getList("data.id", String.class);
                 issueId = issueIdList.toArray(new String[0]);
+                log.warn("=========  Existing Issues Found  " + issueId.length+ " " + response.asString());
             } else if (response.statusCode() == 404) {
                 log.warn("=========  No Issues Found  " + runCaseId + " " + response.asString());
 

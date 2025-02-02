@@ -31,16 +31,18 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
     private static final ThreadLocal<Map<String, Boolean>> stepStatusMap = ThreadLocal.withInitial(HashMap::new);
     private static final ThreadLocal<List<StepResult>> stepResults = ThreadLocal.withInitial(ArrayList::new);
     private final Map<String, String[]> failedTestCases = new HashMap<>();
-    ArrayList<String> tcLists = new ArrayList<String>();
+
     private long startTime;
-    private String stepDesc;
-    private boolean testStepPassed;
+    private String currentCStepDesc;
+
     private boolean stepStatus;
 
     private static String handleIssueCreation(Map<String, Object> issueList, String failedStepIdentifier, ITestResult tr) {
         String newIssueId = null;
         if (issueList != null) {
-            log.info("Verifying failedStepIdentifier: " + failedStepIdentifier + " In " + issueList);
+            log.info("Start Verifying Failed Step: " + failedStepIdentifier + " In " + issueList);
+            failedStepIdentifier = failedStepIdentifier.length() > 120 ? failedStepIdentifier.substring(0, 120) : failedStepIdentifier;
+
             if (isFailedStepIdentifierPresent(issueList, failedStepIdentifier)) {
                 log.warn("Existing Matched Issue Present, No New Issue Required to Be Created");
             } else {
@@ -310,6 +312,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
 
     private String generateFailedStepIdentifier(ITestResult tr, String failMessage, String issueIdentifier) {
         String failedStepIdentifier;
+        String stepDesc = getCurrentStep();
         if (stepDesc == null) {
             failedStepIdentifier = tr.getName() + "_" + failMessage + "_" + issueIdentifier;
         } else {
@@ -378,10 +381,6 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             }
             PTApiUtil.setUpTestRunInTestCycle(testCaseId, caseUpdatedStatus);
 
-            // Include Unique Identifier for the Filed Step
-            // General device/OS information
-            String failedStepIdentifier;
-            failedStepIdentifier = generateFailedStepIdentifier(tr, failMessage, issueIdentifier);
 
             // Update or Close Existing Issues
             PTApiFieldSetup.setTitle(tr.getName());
@@ -390,7 +389,7 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             Map<String, Object> issueListFromSystem = PTApiUtil.isIssueOfRunCaseIdPresent();
 
             List<StepResult> results = StepResultTracker.getStepResults();
-            log.info("adsfasdfadsf========= " + results.size());
+            log.info("Performed Total Step Count " + results.size());
             boolean issueCreated = false;
             String newCreatedIssueId = null;
             if (results != null && !results.isEmpty()) {
@@ -398,12 +397,19 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
                     log.info("stepResult=======" + stepResult.getStatus());
                     // Deal with step Fails
                     if (!stepResult.getStatus()) {
-                        log.info("Step: { " + stepResult.getStepDesc() + " } Status: " + stepResult.getStatus());
+                        log.info("Failed Step: { " + stepResult.getStepDesc() + " } Status: " + stepResult.getStatus());
+
+                        setCurrentStep(stepResult.getStepDesc());
+                        // Include Unique Identifier for the Filed Step
+                        // General device/OS information
+                        String failedStepIdentifier;
+                        failedStepIdentifier = generateFailedStepIdentifier(tr, failMessage, issueIdentifier);
+
                         newCreatedIssueId = handleIssueCreation(issueListFromSystem, failedStepIdentifier + stepResult.getStepDesc(), tr);
                         issueCreated = true;
                     } else {
                         if (issueListFromSystem != null) {
-                            log.info("Step: { " + stepResult.getStepDesc() + "} Status: " + stepResult.getStatus());
+                            log.info("Pass Step: { " + stepResult.getStepDesc() + "} Status: " + stepResult.getStatus());
                             handleIssueCloseForStepPass(issueListFromSystem, stepResult.getStepDesc());
                         }
                     }
@@ -411,6 +417,11 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
             }
             // deal with test case level fails
             if (!issueCreated) {
+                // Include Unique Identifier for the Filed Step
+                // General device/OS information
+                String failedStepIdentifier;
+                failedStepIdentifier = generateFailedStepIdentifier(tr, failMessage, issueIdentifier);
+
                 log.warn("Create Issue for This Case " + failedStepIdentifier);
                 newCreatedIssueId = handleIssueCreation(issueListFromSystem, failedStepIdentifier, tr);
             }
@@ -453,6 +464,13 @@ public class PriorTestAPIAdapter extends TestListenerAdapter {
         } catch (Exception e) {
             log.error("An Error Occurred In onTestFailure: " + e.getMessage(), e);
         }
+    }
+
+    private void setCurrentStep(String stepDesc) {
+        currentCStepDesc = stepDesc;
+    }
+    private String getCurrentStep(){
+        return currentCStepDesc;
     }
 
     private void handleIssueCloseForStepPass(Map<String, Object> issueList, String failedStepIdentifier) {
