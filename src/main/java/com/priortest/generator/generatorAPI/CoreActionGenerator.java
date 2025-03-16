@@ -39,15 +39,10 @@ public class CoreActionGenerator {
         return parameters.toString();
     }
 
-    public static void main(String[] args) {
-        String currentWorkingDirectory = System.getProperty("user.dir");
-
-        String INPUT_FILE_PATH = currentWorkingDirectory+"/src/main/java/com/priortest/generator/resource/coreActions.json";
-        String OUTPUT_DIR_PATH = currentWorkingDirectory+"/src/main/java/com/priortest/generator/coreAction/CoreActions.java";
-
+    static void coreActionGeneratorAPI(String coreActionFilePath, String outPutCoreActionFilePath) {
         try {
             // Read the JSON file
-            String content = new String(Files.readAllBytes(Paths.get(INPUT_FILE_PATH)));
+            String content = new String(Files.readAllBytes(Paths.get(coreActionFilePath)));
             JSONArray jsonArray = new JSONArray(content);
 
             System.out.println("Number of methods read from JSON: " + jsonArray.length());
@@ -63,13 +58,21 @@ public class CoreActionGenerator {
             }
 
             // Write to the output file
-            writeToFile(OUTPUT_DIR_PATH, generatedCode);
+            writeToFile(outPutCoreActionFilePath, generatedCode);
 
             System.out.println("CoreAction.java has been generated successfully!");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        String currentWorkingDirectory = System.getProperty("user.dir");
+        String INPUT_FILE_PATH = currentWorkingDirectory + "/src/main/java/com/priortest/generator/resource/coreActions.json";
+        String OUTPUT_DIR_PATH = currentWorkingDirectory + "/src/main/java/com/priortest/generator/coreAction/CoreActions.java";
+        coreActionGeneratorAPI(INPUT_FILE_PATH, OUTPUT_DIR_PATH);
+
     }
 
     private static String generateCoreActionClass(JSONArray jsonArray) {
@@ -167,7 +170,7 @@ public class CoreActionGenerator {
 
             case "switchToNewPopupWindow":
                 classBuilder.append("\t\tString mainWindowHandle = driver.getWindowHandle();\n\n")
-                .append("\t\tSet<String> allWindowHandles = driver.getWindowHandles();\n")
+                        .append("\t\tSet<String> allWindowHandles = driver.getWindowHandles();\n")
                         .append("\n").append("\t\t\tfor (String handle : allWindowHandles) {\n")
                         .append("\t\t\t\tif (!handle.equals(mainWindowHandle)) {\n")
                         .append("\t\t\t\t\tdriver.switchTo().window(handle);\n")
