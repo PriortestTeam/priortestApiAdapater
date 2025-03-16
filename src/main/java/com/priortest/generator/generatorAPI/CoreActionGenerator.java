@@ -39,7 +39,7 @@ public class CoreActionGenerator {
         return parameters.toString();
     }
 
-    static void coreActionGeneratorAPI(String coreActionFilePath, String outPutCoreActionFilePath) {
+    public static void coreActionGeneratorAPI(String coreActionFilePath, String outPutCoreActionFilePath) {
         try {
             // Read the JSON file
             String content = new String(Files.readAllBytes(Paths.get(coreActionFilePath)));
