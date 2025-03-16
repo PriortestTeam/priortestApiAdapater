@@ -1,0 +1,286 @@
+[
+
+  {
+    "methodName": "switchToNewPopupWindow",
+    "return": null,
+    "seleniumAction": "switchToNewPopupWindow",
+    "parameterName": null,
+    "description": "switch to new pop up window "
+  },
+  {
+    "methodName": "switchToMainWin",
+    "return": null,
+    "seleniumAction": "switchToMainWin",
+    "parameterName": null,
+    "description": "switch to main window "
+  },
+  {
+    "methodName": "scrollToBottom",
+    "return": null,
+    "seleniumAction": "scrollToBottom",
+    "parameterName": null,
+    "description": "Scroll to the Bottom of the Page"
+  },
+  {
+    "methodName": "scrollToTop",
+    "return": null,
+    "seleniumAction": "scrollToTop",
+    "parameterName": null,
+    "description": "Scroll to the Top  of the Page"
+  },
+
+  {
+    "methodName": "scrollToLeft",
+    "return": null,
+    "seleniumAction": "scrollToLeft",
+    "parameterName": null,
+    "description": "Scroll to left"
+  },
+  {
+    "methodName": "scrollToRight",
+    "return": null,
+    "seleniumAction": "scrollToRight",
+    "parameterName": null,
+    "description": "Scroll to right Element"
+  },
+
+  {
+    "methodName": "scrollToElement",
+    "return": null,
+    "seleniumAction": "scrollToElement",
+    "parameterName": "basic",
+    "description": "Scroll to Specific Element"
+  },
+  {
+    "methodName": "enterText",
+    "return": null,
+    "seleniumAction": "sendKeys",
+    "parameterName": {"type": "String", "number": 1},
+    "description": "type text into a field"
+  },
+
+  {
+    "methodName": "openWebPage",
+    "return": null,
+    "seleniumAction": "get",
+    "parameterName": {"type": "String", "number": 1},
+    "description": "Open Webpage as given url"
+  },
+  {
+    "methodName": "getCurrentUrl",
+    "seleniumAction": "getCurrentUrl",
+    "return": "String",
+    "parameterName": null,
+    "description": "Return current page url"
+  },
+
+  {
+    "methodName": "getElementText",
+    "return": "String",
+    "seleniumAction": "getElementText",
+    "parameterName": "basic",
+    "description": "Return current element text"
+  },
+  {
+    "methodName": "getElementTagName",
+    "return": "String",
+    "seleniumAction": "getElementTagName",
+    "parameterName": "basic",
+    "description": "Return current element tag name"
+  },
+  {
+    "methodName": "driverQuit",
+    "return": null,
+    "seleniumAction": "quit",
+    "parameterName": null,
+    "description": "Quit all driver sessions"
+  },
+  {
+    "methodName": "driverClose",
+    "return": null,
+    "seleniumAction": "close",
+    "parameterName": null,
+    "description": "Quit current driver session"
+  },
+  {
+    "methodName": "submitForm",
+    "return": null,
+    "seleniumAction": "submit",
+    "parameterName": "basic",
+    "description": "Submit a form"
+  },
+  {
+    "methodName": "clickAction",
+    "return": null,
+    "seleniumAction": "click",
+    "parameterName": "basic",
+    "description": "Click Action"
+  },
+  {
+    "methodName": "selectAllCheckBox",
+    "return": null,
+    "seleniumAction": "selectAllCheckBox",
+    "parameterName": "basic",
+    "description": "Select All Check Box"
+  },
+
+  {
+    "methodName": "deSelectAllCheckBox",
+    "return": null,
+    "seleniumAction": "deSelectAllCheckBox",
+    "parameterName": "basic",
+    "description": "deSelect All Check Box"
+  },
+  {
+    "methodName": "getVerifyHyperLinkPresent",
+    "return": "boolean",
+    "seleniumAction": "verifiedHyperLink",
+    "parameterName": "basic",
+    "description": "Verify the visibility of a given text as hyperLink"
+  },
+
+  {
+    "methodName": "getVerifyHyperLinkPresentByPartialText",
+    "return": "boolean",
+    "seleniumAction": "verifiedPartialText",
+    "parameterName": "basic",
+    "description": "Return the visibility of a given text as partialText"
+  },
+
+  {
+    "methodName": "getVerifyTextPresent",
+    "return": "boolean",
+    "seleniumAction": "verifiedText",
+    "parameterName": {"type": "String", "number": 1},
+    "description": "Return the visibility of given text"
+  },
+
+  {
+    "methodName": "getVerifyMultipleTextPresent",
+    "return": "boolean",
+    "seleniumAction": "verifiedMultipleText",
+    "parameterName": {"type": "String[]", "number": 1},
+    "description": "Return the visibility of multiple given texts"
+  },
+
+  {
+    "methodName": "getVerifyImagePresent",
+    "return": "boolean",
+    "seleniumAction": "verifiedImage",
+    "parameterName": "basic",
+    "description": "Return the visibility of given Image"
+  },
+  {
+    "methodName": "getVerifyPageTitle",
+    "return": "boolean",
+    "seleniumAction": "verifiedPageTitle",
+    "parameterName": {"type": "String", "number": 1},
+    "description": "Return that the page title matches the expected value."
+  },
+  {
+    "methodName": "selectOptionById",
+    "return": null,
+    "seleniumAction": "selectOptionById",
+    "parameterName": {"type": "int", "number": 1},
+    "description": "Select an option based on the given index"
+  },
+
+  {
+    "methodName": "selectAllOptionsFromDropDown",
+    "return": null,
+    "seleniumAction": "selectAllOptionsFromDropDown",
+    "parameterName": "basic",
+    "description": "Select all options from a list"
+  },
+  {
+    "methodName": "selectOptionByTextFromList",
+    "return": null,
+    "seleniumAction": "selectOptionByText",
+    "parameterName": {"type": "String", "number": 1},
+    "description": "Select an option based on the given text"
+  },
+  {
+    "methodName": "selectOptionByValue",
+    "return": null,
+    "seleniumAction": "selectOptionByValue",
+    "parameterName": {"type": "String", "number": 1},
+    "description": "Select an option based on the given text"
+  },
+  {
+    "methodName": "unSelectOptionByTextFromList",
+    "return": null,
+    "seleniumAction": "unSelectOptionByText",
+    "parameterName": {"type": "String", "number": 1},
+    "description": "Unselect an option based on the given text"
+  },
+  {
+    "methodName": "unSelectOptionByValue",
+    "return": null,
+    "seleniumAction": "unSelectOptionByValue",
+    "parameterName": {"type": "String", "number": 1},
+    "description": "Unselect an option based on the given value"
+  },
+  {
+    "methodName": "unSelectAllOptions",
+    "return": null,
+    "seleniumAction": "unSelectAllOptions",
+    "parameterName": "basic",
+    "description": "Unselect all selected checkboxes"
+  },
+  {
+    "methodName": "handOver",
+    "return": null,
+    "seleniumAction": "handOver",
+    "parameterName": "basic",
+    "description": "Hand over on an element"
+  },
+  {
+    "methodName": "unSelectOptionByIdFromList",
+    "return": null,
+    "seleniumAction": "unSelectOptionById",
+    "parameterName": {"type": "int", "number": 1},
+    "description": "Unselect a checkbox based on the given index"
+  },
+  {
+    "methodName": "getCheckBoxIsSelected",
+    "return": "boolean",
+    "seleniumAction": "isSelected",
+    "parameterName": "basic",
+    "description": "Return an option is selected"
+  },
+  {
+    "methodName": "getElementIsDisplayed",
+    "return": "boolean",
+    "seleniumAction": "isDisplayed",
+    "parameterName": "basic",
+    "description": "Return given element is displayed"
+  },
+  {
+    "methodName": "getButtonIsEnabled",
+    "return": "boolean",
+    "seleniumAction": "isEnabled",
+    "parameterName": "basic",
+    "description": "Return button is enabled"
+  },
+  {
+    "methodName": "getAttribute",
+    "return": "String",
+    "seleniumAction": "getAttribute",
+    "parameterName": {"type": "String", "number": 1},
+    "description": "Return specific attribute of a given element"
+  },
+  {
+    "methodName": "clear",
+    "return": null,
+    "seleniumAction": "clear",
+    "parameterName": "basic",
+    "description": "Clear selected or entered information"
+  },
+  {
+    "methodName": "ImplicitWait",
+    "return": null,
+    "seleniumAction": "ImplicitWait",
+    "parameterName": {"type": "int", "number": 1},
+    "description": "Apply an implicit wait"
+  }
+]
