@@ -43,7 +43,7 @@ public class StepGenerator {
                     writer.append("public class " + capitalizeFirstLetter(pageKey) + " {\n\n");
                     writer.append("\tprivate static final Logger log = LogManager.getLogger(" + capitalizeFirstLetter(pageKey) + ".class);\n");
                     // Add CoreActions as a global instance
-                    writer.append("\tprivate CoreActions coreAction;\n\n");
+                    writer.append("\timport com.priortest.generator.coreAction.CoreActions;\n\n");
                     writer.append("\tpublic " + capitalizeFirstLetter(pageKey) + "(WebDriver driver) {\n");
                     writer.append("\t\tthis.coreAction = new CoreActions(driver);\n");
                     writer.append("\t}\n\n");
