@@ -31,10 +31,10 @@ public class StepGenerator {
                     writer.append("import com.priortest.step.StepResultTracker;\n\n");
                     writer.append("import io.cucumber.java.en.And;\n\n");
 
-
                     writer.append("import org.json.JSONObject;\n\n");
                     writer.append("import org.openqa.selenium.WebDriver;\n");
                     writer.append("import com.priortest.annotation.TestStepApi;\n");
+                    writer.append("import com.priortest.generator.coreAction.CoreActions;\n\n");
                     writer.append("import org.testng.Assert;\n\n");
                     writer.append("import org.apache.logging.log4j.LogManager;\n");
                     writer.append("import org.apache.logging.log4j.Logger;\n\n");
@@ -43,7 +43,7 @@ public class StepGenerator {
                     writer.append("public class " + capitalizeFirstLetter(pageKey) + " {\n\n");
                     writer.append("\tprivate static final Logger log = LogManager.getLogger(" + capitalizeFirstLetter(pageKey) + ".class);\n");
                     // Add CoreActions as a global instance
-                    writer.append("\timport com.priortest.generator.coreAction.CoreActions;\n\n");
+                    writer.append("\tprivate CoreActions coreAction;\n\n");
                     writer.append("\tpublic " + capitalizeFirstLetter(pageKey) + "(WebDriver driver) {\n");
                     writer.append("\t\tthis.coreAction = new CoreActions(driver);\n");
                     writer.append("\t}\n\n");
